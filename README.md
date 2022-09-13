@@ -1,6 +1,6 @@
 ## Welcome to Intro QSS
 
-This is the github repository for Introduction to Quantitative Social Science (PLSC30500) at the University of Chicago, co-taught by [Andy Eggers](http://andy.egge.rs) and [Molly Offer-Westort](https://mollyow.github.io/). Steven Boyd is the teaching assistant.
+This is the github repository for Introduction to Quantitative Social Science (PLSC30500) at the University of Chicago, co-taught by [Andy Eggers](http://andy.egge.rs) and [Molly Offer-Westort](https://mollyow.github.io/). Oscar Cuadros is the teaching assistant.
 
 ## Getting course materials 
 
@@ -14,4 +14,4 @@ The course's private StackOverflow site is https://stackoverflow.com/c/uchicagop
 
 ## Submitting assignments 
 
-Submit assignments on the course's Canvas site: https://canvas.uchicago.edu/courses/37529
+Submit assignments on the course's Canvas site: https://canvas.uchicago.edu/courses/44902
