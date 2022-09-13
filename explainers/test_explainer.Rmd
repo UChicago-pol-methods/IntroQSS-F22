@@ -1,0 +1,30 @@
+---
+title: "This is a test"
+description: |
+  I would put a subtitle here.
+author:
+  - name: Andy Eggers 
+    url: http://andy.egge.rs
+    affiliation: University of Chicago
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+```
+
+In class we did some visualization. But did I mention `mtcars`? It's very important. 
+
+```{r, echo = T}
+mtcars %>% 
+  ggplot(aes(x = mpg, y = disp)) + 
+  geom_point()
+```
+
+
+
+
+
+

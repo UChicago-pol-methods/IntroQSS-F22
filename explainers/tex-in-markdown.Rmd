@@ -1,0 +1,70 @@
+---
+title: "Basics of writing LaTeX in markdown"
+author: "Molly Offer-Westort"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We will use some basic LaTeX for formatting mathematical expressions in markdown. 
+
+To do this, you'll need to have a working LaTeX installation--if you're already able to compile pdf documents, you should be good to go. 
+
+We'll write mathematical expressions two ways:
+
+ - "Inline" math is written using a single dollar sign, `$`, on either side of the expression. For example, `$Y = \frac{\beta_0 + \beta_1 X$` is rendered as $Y = \beta_0 + \beta_1 X$. 
+ - "Display" equations are written using double dollar signs, `$$`. For example, `$$Y = \beta_0 + \beta_1 X$$` is rendered as
+ 
+$$
+Y = \beta_0 + \beta_1 X.
+$$
+
+Inside of these mathematical expressions, the backslash, `\` indicates a specific LaTeX command. In particular, we'll use commands for Greek letters, listed below. And you can use `\frac{<numerator>}{<denominator>}` for fractions, and `^` for exponents. 
+
+Putting these elements together, the expression, `$$\frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{x - \mu}{\sigma}\right)^2}$$` is rendered as,
+
+$$
+\frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{x - \mu}{\sigma}\right)^2}.
+$$
+
+
+
+
+
+### Greek alphabet:
+
+| name    | lowercase    | lowercase tex | uppercase        | uppercase tex |
+|---------|--------------|---------------|------------------|---------------|
+| alpha   | $\alpha$     | `\alpha`      | $\textrm{A}$     | `\textrm{A}`  |
+| beta    | $\beta$      | `\beta`       | $\textrm{B}$     | `\textrm{B}`  |
+| gamma   | $\gamma$     | `\gamma`      | $\Gamma$         | `\Gamma`      |
+| delta   | $\delta$     | `\delta`      | $\Delta$         | `\Delta`      |
+| epsilon | $\epsilon$   | `\epsilon`    | $\textrm{E}<br>$ | `\textrm{E}`  |
+| zeta    | $\zeta$      | `\zeta`       | $\textrm{Z}$     | `\textrm{Z}`  |
+| eta     | $\eta$       | `\eta`        | $\textrm{H}$     | `\textrm{H}`  |
+| theta   | $\theta$     | `\theta`      | $\Theta$         | `\Theta`      |
+| iota    | $\iota$      | `\iota`       | $\textrm{I}$     | `\textrm{I}`  |
+| kappa   | $\kappa$     | `\kappa`      | $\textrm{K}$     | `\textrm{K}`  |
+| lambda  | $\lambda$    | `\lambda`     | $\Lambda$        | `\Lambda`     |
+| mu      | $\mu$        | `\mu`         | $\textrm{M}$     | `\textrm{M}`  |
+| nu      | $\nu$        | `\nu`         | $\textrm{N}$     | `\textrm{N}`  |
+| xi      | $\xi$        | `\xi`         | $\Xi$            | `\Xi`         |
+| omicron | $\textrm{o}$ | `\textrm{o}`  | $\textrm{O}$     | `\textrm{O}`  |
+| pi      | $\pi$        | `\pi`         | $\Pi$            | `\Pi`         |
+| rho     | $\rho$       | `\rho`        | $\textrm{P}$     | `\textrm{P}`  |
+| sigma   | $\sigma$     | `\sigma`      | $\Sigma$         | `\Sigma`      |
+| tau     | $\tau$       | `\tau`        | $\textrm{T}$     | `\textrm{T}`  |
+| upsilon | $\upsilon$   | `\upsilon`    | $\Upsilon$       | `\Upsilon`    |
+| phi     | $\phi$       | `\phi`        | $\Phi$           | `\Phi`        |
+| chi     | $\chi$       | `\chi`        | $\textrm{X}$     | `\textrm{X}`  |
+| psi     | $\psi$       | `\psi`        | $\Psi$           | `\Psi`        |
+| omega   | $\omega$     | `\omega`      | $\Omega$         | `\Omega`      |
+
+
+Some of the uppercase letters, and omicron, don't have specific tex versions because they look like the regular latin letters. We put `\textrm{<>}` around these characters when we use them in mathematical expressions. This is because text characters in mathematical expressions are italicized by default; `\textrm{<>}` makes them not italicized. In general, in mathematical expressions italicized letters, like $X$ and $x$, are interpreted as *variables*, which may vary across observations. Whereas non-italicized letters are interpreted as constants, which do not vary. 
+
+
+
+*Aside: I often work up tables using [www.tablesgenerator.com](https://www.tablesgenerator.com/); you can navigate to different tabs to create tables in LaTeX, markdown, etc.*
