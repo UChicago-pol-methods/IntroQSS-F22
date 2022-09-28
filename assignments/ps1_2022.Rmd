@@ -1,7 +1,7 @@
 ---
 title: "Problem set 1"
 author: "Your name here"
-date: "Due Monday 10/4/2021 at 5pm"
+date: "Due Wednesday 10/5/2022 at 5pm"
 output: pdf_document
 ---
 
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-*\textsc{Note}: Start with the file `ps1_2022.Rmd` (available from the github repository at https://github.com/UChicago-pol-methods/IntroQSS-F22/tree/main/assignments). Save that file locally, open it with RStudio, and modify it to include your answers. To produce a pdf for submission, "knit" the file by clicking on the `Knit` button. Submit both the Rmd file and the knitted PDF via Canvas.* 
+*\textsc{Note}: Start with the file `ps1_2022.Rmd` (available from the github repository at https://github.com/UChicago-pol-methods/IntroQSS-F21/tree/main/assignments). Save that file locally, open it with RStudio, and modify it to include your answers. To produce a pdf for submission, "knit" the file by clicking on the `Knit` button. Submit both the Rmd file and the knitted PDF via Canvas.* 
 
 ## Question 1: US presidential election results 
 
@@ -29,7 +29,7 @@ df <- read_csv(str_c(data_path, "yearly_county_pres_results_wide.csv"))
 ## replace this with your 1a plot code 
 ```
 
-**1b) Make a plot showing the Democratic county share (vertical axis) in each year (horizontal axis).**
+**1b) Make a plot showing the share of counties won by the Democratic candidate (vertical axis) in each year (horizontal axis).**
 
 ```{r}
 ## replace this with your 1b plot code 
@@ -68,6 +68,7 @@ vd <- read_csv(str_c(data_path, "vdem_2010_extract.csv"))
 ```{r, warning = F}
 # replace this with your 2a plot code
 ```
+
 **2b) Now make the same figure faceted by continent. Add a linear regression line (use `geom_smooth(method = lm)`). How does the relationship between GDP per capita and democracy differ across continents?** 
 
 ```{r, warning = F}
