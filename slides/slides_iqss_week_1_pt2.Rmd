@@ -1,0 +1,466 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 1. Programming, pt. 2"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning = F, message = F)
+```
+
+
+class: inverse, middle, center
+
+# A bit of base `R`
+
+---
+
+# Assignment via `->`
+
+```{r}
+8
+x <- 8
+x
+x^2
+y <- x^2
+y
+```
+
+
+---
+
+## Vectors, functions, data frames
+
+```{r}
+x <- c(1, 2, 5)
+mean(x)
+max(x)
+median(x)
+x^2
+data.frame(a = x, b = x^2)
+```
+
+---
+
+# Adding new columns
+
+```{r}
+x <- c(1, 2, 5)
+dat <- data.frame(a = x, b = x^2)
+dat$c <- dat$a + 3
+dat
+```
+
+---
+
+# The `sample()` function
+
+```{r}
+x <- c(1, 2, 5)
+sample(x) # reshuffle
+sample(x, size = 1) # draw one
+sample(x, size = 2, replace = F) # draw two without replacement
+sample(x, size = 5, replace = T) # draw five with replacement
+sample(x, 10, T, prob = c(.05, .2, .75)) # unequal probs
+```
+
+---
+
+# Normal distribution
+
+```{r}
+rnorm(n = 5, mean = 0, sd = 1) # random draws
+dnorm(x = 0, mean = 0, sd = 1) # density
+dnorm(x = 4, 0, 1)
+pnorm(q = 1.96, 0, 1) # cumulative density
+pnorm(0, 0, 1)
+```
+
+---
+
+# Make a sequence
+
+```{r}
+1:10
+seq(from = 1, to = 10, by = 1)
+seq(from = 1, to = 10, by = 2)
+```
+
+
+---
+
+# The pipe: `|>`
+
+```{r}
+x
+```
+
+Equivalent code: 
+
+```{r}
+mean(x)
+c(1,2,5) |>
+  mean()
+```
+
+You will also see `%>%` instead of `|>`. 
+
+`Ctrl-shift-m` in RStudio (can adjust preferences to determine which one appears).
+
+
+---
+
+class: inverse, middle, center
+
+# `tidyverse` for data wrangling: an introduction 
+
+---
+
+# Tidyverse and base `R` 
+
+For many tasks, `R` offers many possible solutions. 
+
+`tidyverse` is a "package of packages" (including `ggplot`) with a more-or-less consistent programming style.
+
+We will tend to use `tidyverse` approaches.
+
+---
+
+## `mutate()` for adding variables
+
+```{r}
+tibble(a = seq(0, 5, by = .25)) |>  # data.frame() also works
+  mutate(b = a^2) |> 
+  ggplot(mapping = aes(x = a, y = b)) + # note '+'
+  geom_point()
+```
+
+
+---
+
+## `filter()` for choosing rows
+
+```{r}
+tibble(a = runif(n = 10000)) |>
+  filter(a <= .3) |> 
+  ggplot(mapping = aes(x = a)) + 
+  geom_histogram(breaks = seq(0, .3, by = .01))
+```
+
+---
+
+## `select()` for choosing columns
+
+```{r}
+dat <- tibble(a = c(1, 2, 5)) |>
+  mutate(b = a^2,
+         c = dnorm(a),
+         d = 1)
+
+dat |> 
+  select(a, c)
+
+dat |> 
+  select(-c)
+```
+
+---
+
+## Grouped summaries
+
+```{r}
+dat <- tibble(a = c(1, 1, 2, 5)) |>
+  mutate(b = runif(4))
+
+dat
+
+dat |> 
+  group_by(a) |> 
+  summarize(c = mean(b))
+```
+
+
+---
+
+class: inverse, middle, center
+
+# An application with real data
+
+---
+
+
+# Load V-Dem dataset
+
+1. Install the installer: `install.packages("devtools")`
+1. Install the package from github: `devtools::install_github("vdeminstitute/vdemdata")`
+1. Load the package: `library(vdemdata)`
+
+```{r echo = F}
+library(vdemdata)
+```
+
+
+Now by typing `vdem` you can access the dataset.
+
+
+???
+
+Can also get necessary subset on repository: data/vdem_long_extract.csv
+
+Note one objective here is just to practice the skills on political science data rather than e.g. `mpg` or `diamonds`.
+
+
+---
+
+# Getting a feel for the data (1)
+
+`vdem` is big! 
+
+```{r}
+dim(vdem)
+```
+
+--
+
+Typing `vdem` is overwhelming and unhelpful; `View(vdem)` better but takes a while to load. 
+
+---
+
+#### Look at column names: 
+
+.small-output[
+```{r}
+names(vdem)  # colnames(vdem) also works
+```
+]
+
+---
+
+
+#### `tibble`s: better viewing
+
+<!-- see
+https://github.com/yihui/xaringan/issues/169
+for shortcut
+--> 
+
+.small-output[
+```{r}
+library(tidyverse)
+vdem |>  
+  as_tibble()   # "tibble" package is part of "tidyverse"
+```
+]
+
+
+
+---
+
+### Choose columns with `select()`
+
+
+```{r}
+vd <- as_tibble(vdem) |>   
+  select(country_name, year, e_regionpol_6C,  #<<
+         v2x_polyarchy, e_gdppc)  #<<
+vd
+```
+
+---
+
+
+### Choose rows with `filter()`
+
+```{r}
+vd |>  
+  filter(year == 2015) #<<
+```
+
+---
+
+### Create new variables with `mutate()`
+
+```{r}
+vd |>  
+  filter(year == 2015) |>  
+  mutate(polyarchy_times_100 = 100*v2x_polyarchy) |>  #<<
+  select(country_name, v2x_polyarchy, polyarchy_times_100)
+```
+
+---
+
+### Coding exercise: reverse-engineer the plot!
+
+```{r rev-eng-0, echo = F, fig.height=5.5, fig.width=9}
+vd |>  
+  filter(country_name %in% c("Iraq", "France", "China", #<<
+                             "United States of America")) |>   #<<
+  ggplot(aes(x = year, y = v2x_polyarchy, col = country_name)) +
+  geom_line()
+```
+
+???
+
+Polyarchy is a multiplicative ("necessary conditions") index with five components: 
+
+1. Elected officials
+2. Clean elections
+3. Associational autonomy
+4. Inclusive citizenship
+5. Freedom of expression and alternative sources of information
+
+---
+
+```{r ref.label = "rev-eng-0", fig.height=5.5, fig.width=9}
+```
+
+---
+
+### Coding exercise: reverse-engineer the plot!
+
+```{r rev-eng-1, echo = F, fig.height=5.5, fig.width=9, message = F}
+vd |> 
+  group_by(e_regionpol_6C, year) |>  
+  summarize(mean_polyarchy = mean(v2x_polyarchy, na.rm = T)) |>  
+  ggplot(aes(x = year, y = mean_polyarchy, 
+             col = factor(e_regionpol_6C))) +
+  geom_line() + 
+  scale_color_discrete(labels = c("E. Europe & Central Asia",
+                                "Latin America & Caribbean",
+                                "Middle East & N. Africa",
+                                "Sub-Saharan Africa",
+                                "W. Europe & N. America",
+                                "Asia & Pacific")) +
+  labs(color = "Region",
+       caption = "Regions from e_regionpol_6C (V-Dem)",
+       x = "Year",
+       y = "Average polyarchy score in region")
+```
+---
+
+## First task: compute average polyarchy score within region over time
+
+First for the whole dataset:
+```{r}
+vd |>  
+  group_by(e_regionpol_6C) |>  
+  summarize(mean_polyarchy = mean(v2x_polyarchy))
+```
+
+--
+
+Oops! 
+
+
+---
+
+## Try again: compute average polyarchy score within region over time
+
+First for the whole dataset:
+```{r}
+vd |> 
+  group_by(e_regionpol_6C) |> 
+  summarize(mean_polyarchy = mean(v2x_polyarchy, na.rm = T)) #<<
+```
+
+---
+
+## Getting closer:
+
+Now for a single year:
+
+```{r}
+vd  |>  
+  filter(year == 2015) |>   #<<
+  group_by(e_regionpol_6C) |>  
+  summarize(mean_polyarchy = mean(v2x_polyarchy, na.rm = T)) 
+```
+
+---
+
+## Average polyarchy score within region over time 
+
+```{r}
+vd |> 
+  group_by(e_regionpol_6C, year) |>   #<<
+  summarize(mean_polyarchy = mean(v2x_polyarchy, na.rm = T)) 
+```
+
+---
+
+### Now to plot it
+
+```{r, fig.height=4, fig.width=9}
+vd |>  
+  group_by(e_regionpol_6C, year) |> 
+  summarize(mean_polyarchy = mean(v2x_polyarchy, na.rm = T)) |>  
+  ggplot(aes(x = year, y = mean_polyarchy, col = e_regionpol_6C)) + 
+  geom_line()
+```
+
+Hmm.
+
+---
+
+We need to tell `ggplot` that `e_regionpol_6C` is a categorical variable, not a continuous variable.
+
+```{r, fig.height=4, fig.width=9}
+vd |>  
+  group_by(e_regionpol_6C, year) |> 
+  summarize(mean_polyarchy = mean(v2x_polyarchy, na.rm = T)) |>  
+  ggplot(aes(x = year, y = mean_polyarchy, col = factor(e_regionpol_6C))) + #<< 
+  geom_line()
+```
+
+
+---
+
+#### The rest is fiddly stuff with labels. 
+
+
+```{r ref.label = "rev-eng-1", fig.height=5.5, fig.width=9, eval = F}
+```
+---
+
+
+
+### Alternative way to do something similar
+
+
+```{r fig.width=9}
+vd |>  
+  filter(year > 1900) |>  
+  ggplot(aes(x = year, y = v2x_polyarchy,
+             col = factor(e_regionpol_6C))) +  #<<
+  geom_smooth(span = .5)  #<<
+```
+
+
+---
+
+
+### Plotting grouped summaries (2)
+
+
+```{r fig.width=10.5}
+vd |>  
+  filter(year > 1900) |>  
+  group_by(year) |> 
+  summarize(mean_poly = mean(v2x_polyarchy, na.rm = T),
+            mean_gdppc = mean(e_gdppc, na.rm = T)) |>  
+  mutate(my_size = ifelse(year %in% c(1946, 1960, 1989, 2018), 8, 0)) |>  
+  ggplot(aes(x = mean_gdppc, y = mean_poly)) +  #<<
+  geom_path() + 
+  geom_point() + 
+  geom_text(aes(label = year, size = my_size), show.legend=F)
+```
+
+

@@ -1,0 +1,580 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 1. Introduction and programming, pt. 1"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning = F, message = F)
+```
+
+
+# This course
+
+- Instructors: Andy Eggers and Molly Offer-Westort
+- TA: Oscar Cuadros
+- part of a sequence:
+  - Intro to Quant Soc Sci **(this course)** (fall)
+  - Causal Inference (winter)
+  - Linear Models (spring)
+
+---
+
+# Our objectives 
+
+- give a strong foundation for further study
+- give a taste of what is fun about quantitative social science 
+    - working with data, visualizing relationships
+    - mathematical rigor and clarity
+    - thinking about causality and identification
+
+--
+
+Week by week: 
+
+- Programming (lecture week 1, several labs, every homework)
+- Probability (week 2)
+- Summarizing distributions (week 3)
+- Causality and identification (week 4)
+- Estimation (weeks 5 and 7)
+- Inference (weeks 6 and 8)
+- Presentations of data analysis projects (week 9)
+
+---
+
+# Expectations about background
+
+Very useful (but not required) to have some exposure to some of
+
+- math (semi-recently)
+- probability & statistics
+- econometrics/regression modeling
+- programming
+
+--
+
+If you have very little exposure to something above, you will have to work harder on that.
+
+If you have lots of exposure to all of the above, we hope you can still learn something.
+
+---
+
+# Expectations for the course 
+
+- Read the syllabus
+- Prepare for class: attempt the main reading (usually Aronow & Miller); start with an easier reading if necessary 
+- If you are stuck on reading/assignments: 
+    1. Use google first.
+    1. Ask your question on our private StackOverflow (https://stackoverflow.com/c/uchicagopolmeth)
+    1. Or if you're brave, ask on the real StackOverflow (https://stackoverflow.com/) if it's about `R` or CrossValidated (https://stats.stackexchange.com/) if it's about stats. 
+- If you are confused in class, ask a question
+
+Please also *answer* questions on our private StackOverflow.
+
+If you need to email one of us, please email both of us. 
+
+
+<!-- 
+---
+
+# What we do with data
+
+We'll get started on working with data, and we'll also get started on thinking critically about how you use data to answer questions.
+
+What data would you need to make the argument in the article below?
+
+![Johnson et al. PNAS](assets/guardian.png)
+
+---
+
+# Inferential questions
+
+
+- What can the data you *do* have tell you about data you *don't* have?
+- What data would you need to answer questions about *what would have happened*?
+- What can we say about our *uncertainty* about estimates or predictions?
+
+
+--> 
+---
+
+# Assessment 
+
+- 40% problem sets (8 in all)
+- 30% independent data analysis project (presentation and report)
+- 20% in-class midterm on October 28
+- 10% class participation
+
+???
+
+Brief overview of data analysis project
+
+---
+
+# Technical setup
+
+You should have already done the following: 
+
+1. install `R` from https://cran.rstudio.com/ 
+1. Install RStudio from https://www.rstudio.com/products/rstudio/download/
+1. In RStudio install `tidyverse` and `tinytex`
+
+If you run into trouble, use (free) RStudio Cloud until you resolve the issue.
+
+
+---
+
+class: inverse, middle, center
+
+# Toward a grammar of graphics
+
+---
+
+class: bg-full
+background-image: url("assets/rosling_youtube.png")
+background-position: center
+background-size: contain
+
+???
+
+Source: https://www.youtube.com/watch?v=jbkSRLYSojo
+
+---
+
+class: bg-full
+background-image: url("assets/rosling_youtube_zoom.png")
+background-position: center
+background-size: contain
+
+???
+
+Source: https://www.youtube.com/watch?v=jbkSRLYSojo
+
+---
+
+# Mapping attributes to aesthetics 
+
+Q: What is the **unit of observation**? 
+
+A: A country in a year
+
+Q: How are a country-year's **attributes** mapped to **aesthetic** components of the graphic?
+
+```{r, echo = F}
+tribble(~Attribute, ~Aesthetic,
+        "Income", "Horizontal position (x)",
+        "Life expectancy", "Vertical position (y)",
+        "Population", "Size of point",
+        "Continent", "Color of point"
+        ) %>% 
+  kableExtra::kbl()
+```
+
+
+---
+
+class: bg-full
+background-image: url("assets/Minard.png")
+background-position: center
+background-size: contain
+
+### Minard's graphic on Napoléon in Russia   
+
+???
+
+One of the "best statistical drawings ever created" (Tufte, *VDQI*)
+Source: [Wikipedia](https://en.wikipedia.org/wiki/File:Minard.png)
+
+
+---
+
+
+# Mapping attributes to aesthetics 
+
+Q: What is the **unit of observation**? 
+
+A: An army (army division) on a day ("army-day")
+
+Q: How are an army-day's **attributes** mapped to **aesthetic** components of the graphic?
+
+```{r, echo = F}
+tribble(~Attribute, ~Aesthetic,
+        "Longitude", "Horizontal position (x)",
+        "Latitude", "Vertical position (y)",
+        "Number of surviving soldiers", "Width of line",
+        "Direction (advance, retreat)", "Color of line"
+        ) %>% 
+  kableExtra::kbl()
+```
+
+(Also note secondary plot showing temperature during retreat.)
+
+---
+
+# Data: structure
+
+Our data is typically **rectangular**, with rows and columns like a spreadsheet.
+
+--
+
+Usually, 
+
+- each row should be one observation (e.g. country-year, army-day)
+- each column should contain one attribute (e.g. life expectancy, number of surviving troops)
+
+--
+
+For example: 
+
+```{r, echo = F}
+gapminder::gapminder %>% 
+  filter(year == 2007) %>% 
+  select(-year) %>% 
+  slice(1:10) %>% 
+  kableExtra::kbl() %>% 
+  kableExtra::kable_styling(font_size=12)
+
+```
+
+???
+
+Data in this format is sometimes referred to as "tidy" [(Wickham 2014)](https://vita.had.co.nz/papers/tidy-data.pdf). I think this concept is useful as long as you recognize that the definition of "unit of observation" (and thus attribute/variable) depends on the purpose for which the data is being used.
+
+---
+
+
+class: inverse, middle, center
+
+# Making (beautiful and informative) graphics
+
+---
+
+# Making graphics in `R` 
+
+We will use the `ggplot2` library, which is part of the `tidyverse` library.
+
+Basic components of plotting with `ggplot`: 
+
+- data 
+- mapping of attributes (columns of data) to aesthetics
+- geometric representations of data (`geom`s)
+
+--
+
+To get started: 
+
+- install the package: `install.packages("tidyverse")` [first time]
+- load the package: `library(tidyverse)` [every time]
+
+
+
+---
+
+class: inverse, middle, center
+
+# Quick detour: getting data into `R`
+
+---
+
+# Getting data into `R` (and `RStudio`)
+
+An interactive option: `Import Dataset` button in `Environment` pane of `RStudio`
+
+--
+
+But note it's showing you the code it's using! 
+
+(Live coding example.)
+
+---
+
+# Getting data into `R` (cont'd)
+
+Most commonly used functions: 
+
+- `read_csv()` and `read_rds()` in `readr` (`tidyverse`)
+- `readstata13::read.dta13()` for Stata files (`.dta`)
+- `readxl::read_excel()` for Excel files (`.xls`, `.xlsx`)
+- `load()` in base R for "R objects"
+
+All require "path" to file as argument. 
+
+--
+
+Sometimes data is a package, e.g. `babynames`, `gapminder`, `vdemdata` 
+
+--
+
+See Chapter 11 of R4DS and "Data Import" cheatsheet.
+
+
+---
+
+## A simple example
+
+Get data in: 
+
+```{r}
+gapminder_2007 <- gapminder::gapminder |> 
+  filter(year == 2007 & continent != "Oceania") # will cover later
+```
+
+Make a plot:
+
+```{r, eval = F}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp)) + 
+  geom_point()
+```
+
+
+---
+
+```{r, fig.height=3.5, fig.width=5, fig.align="center"}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp)) + 
+  geom_point()
+```
+
+To note:
+
+- the **arguments** to `ggplot()` say what the data is (`data = gapminder_2007`) and how attributes are mapped to aesthetics (`mapping = aes(x = gdpPercap, y = lifeExp)`)
+- `geom_point()` says "plot a point for each observation"
+- **layers** of plot linked with plus sign (`+`)
+
+
+---
+
+<!-- Let's map population to the size of the points:  -->
+
+```{r, fig.height=5.5, fig.width=6.5, fig.align="center"}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp,
+                     size = pop)) +  #<<
+  geom_point()
+```
+
+---
+
+<!-- Let's map continent to the color of the points:  -->
+
+```{r, fig.height=5.5, fig.width=6.5, fig.align="center"}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp,
+                     size = pop,
+                     col = continent)) +  #<<
+  geom_point()
+```
+
+---
+
+<!-- Let's put the x-axis on the log scale:  -->
+
+```{r, fig.height=5.5, fig.width=6.5, fig.align="center"}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp,
+                     size = pop,
+                     col = continent)) +  
+  geom_point() + 
+  scale_x_log10() #<<
+```
+
+
+---
+
+# Minard data 
+
+```{r, echo = F}
+minard <- read.table("assets/troops.txt", header = T)
+```
+
+```{r, echo = F}
+minard |> 
+  slice(1:18) |>  
+  kableExtra::kbl() |>  
+  kableExtra::kable_styling(font_size=15)
+```
+
+---
+
+```{r, fig.width = 9, fig.height = 3.5}
+ggplot(data = minard,
+       mapping = aes(x = long, y = lat, 
+                     size = survivors, col = direction,
+                     group = group)) + 
+  geom_path() #<<
+  
+```
+
+
+???
+
+"`geom_path()` connects the observations in the order in which they appear in the data. `geom_line()` connects them in order of the variable on the x axis. `geom_step()` creates a stairstep plot, highlighting exactly when changes occur."
+
+Source: https://ggplot2.tidyverse.org/reference/geom_path.html
+
+---
+
+
+# Back to `gapminder`
+
+```{r, fig.height=4.5, fig.width=5.5, fig.align="center", warning = F, message = F}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp,
+                     size = pop, col = continent)) +  
+  geom_point() +   
+  scale_x_log10() 
+```
+
+---
+
+# Adding a smoothing line
+
+`geom_smooth()` adds a "smoother". Let's try adding it!
+
+--
+
+```{r, fig.height=4.5, fig.width=5.5, fig.align="center", warning = F, message = F}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp,
+                     size = pop, col = continent)) +  
+  geom_point() +   
+  scale_x_log10() + 
+  geom_smooth()   #<<
+
+```
+
+Hmm.
+
+??? If you don't exclude Oceania, `ggplot` refuses to make a smoother using default settings because there are too few countries in Oceania.
+
+---
+
+# Inheritance of aesthetics 
+
+```{r, fig.height=4.5, fig.width=5.5, fig.align="center", warning = F, message = F}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp, size = pop)) +  
+  geom_point(aes(col = continent)) +   #<< 
+  scale_x_log10() 
+```
+
+---
+
+## Data summary w. `geom_smooth()` 
+
+
+```{r, fig.height=4.5, fig.width=5.5, fig.align="center", warning = F, message = F}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp, size = pop)) +  
+  geom_point(aes(col = continent)) + 
+  scale_x_log10() +
+  geom_smooth() #<<
+```
+
+---
+
+## Linear version w. `geom_smooth()` 
+
+
+```{r, fig.height=4.5, fig.width=5.5, fig.align="center", warning = F, message = F}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp, size = pop)) +  
+  geom_point(aes(col = continent)) + 
+  scale_x_log10() +
+  geom_smooth(method = lm) # lm means "linear model" #<<  
+```
+
+
+???
+
+Anything after # (on the same line) is a "comment" and is ignored by R. This is useful for explaining to humans what is going on in the code.
+
+---
+
+## Small multiples: `facet_wrap()` 
+
+```{r, fig.height=5, fig.width=8.5, fig.align="center", warning = F,  message = F}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp, size = pop)) +  
+  geom_point() + 
+  scale_x_log10() +
+  geom_smooth(method = lm) +
+  facet_wrap(vars(continent)) #<<
+```
+
+---
+
+# Other geoms 
+
+```{r, fig.height=5, fig.width=8.5, fig.align="center", warning = F,  message = F}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp)) +  
+  geom_density2d() +  #<<
+  scale_x_log10()
+
+```
+
+
+
+---
+
+# Other geoms 
+
+```{r, fig.height=5, fig.width=8.5, fig.align="center", warning = F,  message = F}
+ggplot(data = gapminder_2007, 
+       mapping = aes(x = gdpPercap, y = lifeExp)) +  
+  geom_text(aes(label = country)) +  #<<
+  scale_x_log10()
+
+```
+
+---
+
+# How to learn more about visualization
+
+Practice and experiment. (And do problem sets.) 
+
+Resources: 
+
+- *R For Data Science*
+- RStudio primers
+- RStudio "Data Visualization" cheat sheet
+- Google
+- StackOverflow
+- Readings on syllabus (Kieran Healy)
+
+---
+
+class: bg-full
+background-image: url("assets/data_viz_cheatsheet.png")
+background-position: center
+background-size: contain
+
+???
+
+Source: [RStudio Cheatsheets](https://www.rstudio.com/resources/cheatsheets/)
+
+
+
+---
+
+# Back to the big picture 
+
+Components of a `ggplot`: 
+
+- data, with observations in rows, attributes in columns
+- mapping of attributes to aesthetics (x, y, size, shape, color, transparency, etc)
+- geometric objects (`geom`s)
+
+Next: getting data into the right format for plotting (and analysis).
+
+
