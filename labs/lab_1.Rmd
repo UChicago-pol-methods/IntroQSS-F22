@@ -1,0 +1,199 @@
+---
+title: "Lab 1"
+author: "YOUR NAME"
+date: "30 September 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(scales)
+```
+
+
+## Goals for today
+
+For the first lab, we will reverse engineer some plots using a relatively small, historical dataset. This should help you practice the ``grammar of graphics'' as well as the process of downloading, completing, and knitting your assignments. This lab is based on the structure of the first assignment. 
+
+## Load and look at the data
+
+METHOD 1
+
++ STEP 0: Installing packages in R (tidyverse, haven, readxl, rmarkdown)
+
+
++ STEP 1: Call the libraries you need
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse) # csv, tsv, fwf
+library(haven) # sas(SAS), sav(SPSS), dta(Stata)
+library(readxl) # xlsx, xls(Excel)
+```
+
++ STEP 2: Set your file path
+
+```{r, message = FALSE,  echo=TRUE}
+setwd("C:/Users/cuadr/OneDrive/Escritorio/UCHICAGO/7. Intro QMSC 2022/Lab/2022/1")
+
+# To reset your path:
+# require("knitr")
+# opts_knit$set(root.dir = "C:/Users/cuadr/OneDrive/Escritorio/UCHICAGO/7. Intro QMSC 2022/Lab/2022/1")
+```
+
+
++ STEP 3: Upload your data set in R
+
+```{r, message = FALSE}
+midwest <- read_dta("midwest.dta")
+male_female <- read.delim("male_female_counts.txt")
+college <- read.csv("College.csv")
+world_wealth_inequality <- read_excel("world_wealth_inequality.xlsx")
+````
+
++ Now check your data!
+
+```{r}
+View(midwest)
+View(male_female)
+View(college)
+View(world_wealth_inequality)
+```
+
+METHOD 2
+
+```{r, message = FALSE, echo = FALSE}
+#set path to retrieve data from Git repository
+data_path <- "https://raw.github.com/UChicago-pol-methods/IntroQSS-F22/main/data/"  
+
+```
+
+```{r, message = FALSE, echo = FALSE}
+#retrieve data and save as dataframe, specify col types
+df <- read_csv(str_c(data_path, "uk_coal_tables.csv"), 
+               col_types = "cddddddd", 
+               na = "N/A") 
+```
+
+Don't worry if you cannot interpret the code above. If you can, excellent! All you need to know is that our data is now in the environment and saved as an object called ``df`` (for ``dataframe'').
+
+Before we worry about visualizing the data, let's look at what it contains. Run the chunk below to view the column headings and first several rows of data. 
+
+```{r, message = FALSE}
+head(df)  #show col names and several rows of data
+```
+
+**What are the variables in the data set?**
+
+YOUR ANSWER HERE
+
+**What does each row represent? (i.e. what is the \textit{unit of observation}?)**
+
+YOUR ANSWER HERE 
+ 
+**Notice that the first several rows of ``Proportion_Imported_From_UK'' are empty. Why might this data be missing? (hint: look at column 1) **
+
+YOUR ANSWER HERE  
+
+
+## First plot
+
+For the first plot, most of the code has been filled in for you. Finish the code to recreate this image.
+
+Incomplete code:
+
+    plot_1 <- ggplot(data = df, 
+                     mapping = aes(x = Year, 
+                                   y = ______, 
+                                   linetype = ____)) + 
+      geom_line() + 
+      labs(x = "Year", 
+           y = "Proportion of Consumed Coal Imported from UK", 
+           ____ = "Dependence on UK Coal Over Time") 
+    
+    plot_1
+
+```{r, message = FALSE}
+#YOUR CODE HERE
+```
+
+
+## Second plot
+
+For the second plot, more of the code is missing. See if you can recreate the image. (hint, the line being fitted is a linear model)
+
+Incomplete code:
+
+    plot_2 <- ggplot(data = __, 
+                     mapping = aes(x = _____, 
+                                   y = _____)) + 
+      geom_point() +
+      geom_smooth(method = "__", 
+                  ____ = "red") +
+      labs(__ = "Tons Produced", 
+           __ = "Tons Exported", 
+           title = "Coal Production and Exports")
+    
+    plot_2
+
+
+```{r, message = FALSE}
+#YOUR CODE HERE
+```
+
+**What relationship does this plot represent?**
+
+YOUR ANSWER HERE 
+
+**Does the overall trend (as represented by the line) fit your expectations?**
+
+YOUR ANSWER HERE 
+
+**Why do you think there is a cluster of points in the bottom right corner?**
+
+YOUR ANSWER HERE   
+
+**What about the points in the lower left?**
+
+YOUR ANSWER HERE 
+
+## Third Plot
+
+Since we suspect that the clustering is the result of different countries exporting different proportions of the coal they produce, we can alter the code above slightly to color the points by country and fit a separate line for each country. Complete the code to produce this plot.
+
+Incomplete code:
+
+    plot_3 <- ggplot(_____ = ____, 
+                          _____ = ______(x = ______, 
+                                         y = _______, 
+                                         _______ = Country)) + 
+      ______() + 
+      geom_smooth(method = "____") + 
+      labs(x = "_____", 
+      y = "______", 
+      title = "_______")
+    
+    plot_3
+
+
+```{r, message = FALSE}
+#YOUR CODE HERE
+```
+
+**What issues do you see with this plot?**
+
+YOUR ANSWER HERE  
+
+**How might we address this concern with a different visualization?**
+
+YOUR ANSWER HERE 
+
+## Fourth Plot
+
+None of the code is provided for you. Think about what you can use from the previous plot and what has changed.
+
+```{r, message = FALSE}
+#YOUR CODE HERE
+```
+
+*While colors can be a powerful visualization tool, line type, point shape, and other visual elements can make your work more accessible to people who are colorblind. Alternatively, there are packages outside the tidyverse (e.g. ``ggthemes``) which contain colorblind friendly palettes or allow you to manually define a palette using several different color reference systems.*
