@@ -82,28 +82,26 @@ Please also *answer* questions on our private StackOverflow.
 If you need to email one of us, please email both of us. 
 
 
-<!-- 
----
+<!-- --- -->
 
-# What we do with data
+<!-- # What we do with data -->
 
-We'll get started on working with data, and we'll also get started on thinking critically about how you use data to answer questions.
+<!-- We'll get started on working with data, and we'll also get started on thinking critically about how you use data to answer questions. -->
 
-What data would you need to make the argument in the article below?
+<!-- What data would you need to make the argument in the article below? -->
 
-![Johnson et al. PNAS](assets/guardian.png)
+<!-- ![Johnson et al. PNAS](assets/guardian.png) -->
 
----
+<!-- --- -->
 
-# Inferential questions
-
-
-- What can the data you *do* have tell you about data you *don't* have?
-- What data would you need to answer questions about *what would have happened*?
-- What can we say about our *uncertainty* about estimates or predictions?
+<!-- # Inferential questions -->
 
 
---> 
+<!-- - What can the data you *do* have tell you about data you *don't* have? -->
+<!-- - What data would you need to answer questions about *what would have happened*? -->
+<!-- - What can we say about our *uncertainty* about estimates or predictions? -->
+
+
 ---
 
 # Labs 

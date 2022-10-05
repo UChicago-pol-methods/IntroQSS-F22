@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-*\textsc{Note}: Start with the file `ps1_2022.Rmd` (available from the github repository at https://github.com/UChicago-pol-methods/IntroQSS-F21/tree/main/assignments). Save that file locally, open it with RStudio, and modify it to include your answers. To produce a pdf for submission, "knit" the file by clicking on the `Knit` button. Submit both the Rmd file and the knitted PDF via Canvas.* 
+*\textsc{Note}: Start with the file `ps1_2022.Rmd` (available from the github repository at https://github.com/UChicago-pol-methods/IntroQSS-F22/tree/main/assignments). Save that file locally, open it with RStudio, and modify it to include your answers. To produce a pdf for submission, "knit" the file by clicking on the `Knit` button. Submit both the Rmd file and the knitted PDF via Canvas.* 
 
 ## Question 1: US presidential election results 
 

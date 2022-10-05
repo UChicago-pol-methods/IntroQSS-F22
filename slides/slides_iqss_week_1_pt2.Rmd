@@ -99,14 +99,13 @@ seq(from = 1, to = 10, by = 2)
 
 # The pipe: `|>`
 
-```{r}
-x
-```
-
 Equivalent code: 
 
 ```{r}
-mean(x)
+mean(c(1,2,5))
+```
+
+```{r}
 c(1,2,5) |>
   mean()
 ```
@@ -138,9 +137,7 @@ We will tend to use `tidyverse` approaches.
 
 ```{r}
 tibble(a = seq(0, 5, by = .25)) |>  # data.frame() also works
-  mutate(b = a^2) |> 
-  ggplot(mapping = aes(x = a, y = b)) + # note '+'
-  geom_point()
+  mutate(b = a^2)
 ```
 
 
