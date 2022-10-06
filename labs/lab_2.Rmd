@@ -1,0 +1,208 @@
+---
+title: "Lab 2"
+author: "YOUR NAME"
+date: "10/7/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, include = FALSE}
+library(tidyverse)
+```
+
+## Getting started
+
+Today, we are going to work on loading and tidying data. Step 1 is to download the following zip file from the course git repository "gdp_per_cap_1995_2015.zip". Save it in a place that you can locate it with a relative file path. Use "getwd()" if you are unsure what your working directory is.  
+
+First, we will make sure everyone can extract data from a zip file. One option is to open the zipped file and use your OS' built in extraction capabilities (assuming it has those). However, it is also possible to access the data within R Studio. In fact, readr can grab data inside a zip without extracting at all. 
+
+*Note that your file path may be different. Adjust accordingly!*
+
+```{r}
+gdp_per_cap <- read_csv('data/gdp_per_cap.zip')
+```
+
+Notice the warning text. It is telling us that there are multiple csv files within the zip file. This data was downloaded from the World Bank earlier this year in this format. Read the name of the file carefully. What does it say at the end of the file name?
+
+If you look inside the zip file, you'll notice another csv with \textit{almost} the same name. The only difference is in the suffix. The one marked "metadata" contains information \textit{about} the data, but no data we can actually analyze. It is common for csv files like this to be generated automatically when you download data from a huge database like the World Bank's DataBank.
+
+We don't really need to worry that R didn't read the metadata, because it is only useful as documentation. If you do have multiple csv files in a zip file, you can sepcify which one you want to read, but you need to unzip first. 
+
+```{r}
+gdp_per_cap_2 <- read_csv(unz(description =  'data/gdp_per_cap.zip', 
+                  filename =   'b9988620-72da-4463-b88c-93fa96b7075f_Data.csv'))
+```
+
+We can confirm that these contain the same data by examining each:
+
+```{r}
+str(gdp_per_cap)
+
+str(gdp_per_cap_2)
+```
+
+
+## "Tidy"ing the data
+
+Is this data in "tidy" format? Why or why not?
+
+**Your Answer**
+
+What can we do to `gdp_per_cap` to make it tidy?
+
+**Your Answer**
+
+Finish this code to make the data tidy:
+
+gdp_per_cap_tidy <- gdp_per_cap %>%
+  pivot______(c(`1995 [YR1995]`, 
+                 `_______`, 
+                 `1997 [YR1997]`, 
+                 `1998 [YR1998]`, 
+                 `1999 [YR1999]`, 
+                 `2000 [YR2000]`, 
+                 `_______`, 
+                 `2002 [YR2002]`, 
+                 `2003 [YR2003]`, 
+                 `2004 [YR2004]`, 
+                 `2005 [YR2005]`, 
+                 `2006 [YR2006]`, 
+                 `2007 [YR2007]`, 
+                 `2008 [YR2008]`, 
+                 `_______`, 
+                 `2010 [YR2010]`, 
+                 `2011 [YR2011]`, 
+                 `2012 [YR2012]`, 
+                 `2013 [YR2013]`, 
+                 `_______`, 
+                 `2015 [YR2015]`), 
+               names_to = "_____", 
+               ______ = "gdppc")
+
+
+```{r}
+
+```
+
+*There are more efficent ways to specify your columns. Try to come up with at least one.*
+
+## Cleaning up the data
+
+Let's look at our new tidy data. Now we are getting closer to something we can work with! Is there anything you would want to change about it?
+
+```{r}
+head(gdp_per_cap_tidy)
+```
+
+**Your Answer**
+
+*There may be easier methods that make use of regular expressions. If you are familiar with regex and want to try, please feel free. If you don't know regex, you should be able manage this problem with dplyr functions like recode() or case_when()*
+
+Fill in this code to make the "year" variable more useable: 
+
+gdp_per_cap_tidy <- ________ %>% 
+  ______(year = ______(year, 
+                       '1995 [YR1995]' = 1995,
+                       '1996 [YR1996]' = 1996,
+                       '_____________' = 1997,
+                       '1998 [YR1998]' = 1998,
+                       '1999 [YR1999]' = ____,
+                       '2000 [YR2000]' = 2000,
+                       '2001 [YR2001]' = 2001,
+                       '2002 [YR2002]' = 2002,
+                       '2003 [YR2003]' = 2003,
+                       '2004 [YR2004]' = 2004,
+                       '2005 [YR2005]' = 2005,
+                       '_____________' = 2006,
+                       '2007 [YR2007]' = 2007,
+                       '2008 [YR2008]' = 2008,
+                       '2009 [YR2009]' = ____,
+                       '2010 [YR2010]' = 2010,
+                       '2011 [YR2011]' = 2011,
+                       '2012 [YR2012]' = 2012,
+                       '2013 [YR2013]' = ____,
+                       '2014 [YR2014]' = 2014,
+                       '2015 [YR2015]' = 2015))
+                       
+```{r}
+
+```
+
+Do we need all of the variables in the dataset? Which would you remove and why? Are there any you would rename? Fill in the code to rename and remove variables you want to change:
+
+gdp_per_cap_tidy <- gdp_per_cap_tidy %>%
+  rename(_______) %>%
+  select(_______)
+
+```{r}
+
+```
+
+## Subsetting the Data
+
+This dataset now looks much cleaner, is easier to work with, and does not contain as much unnecessary information. Now suppose that we only want to keep countries for which we have at least some data (i.e. remove countries which are missing "gdppc" for all years in the data). How would you approach this problem? Fill in the code to do it for you.
+
+gdp_per_cap_tidy_subset <- __________ %>%
+  group_by(_______) %>%
+  _______(!all(______(gdppc))) 
+
+```{r}
+
+```
+
+This doesn't seem to work. Any guesses as to why? We can check if values we expect to be "NA" actually are by running this code:
+
+```{r, include = FALSE}
+is.na(gdp_per_cap_tidy$gdppc)
+```
+
+It appears that a lot of of our missing data is not being recognized as NA. What values appear where you expect to see NA? One  thing we can check when our code isn't running as expected is the class of your values. Run the following code to check what class "gdppc" is:
+
+```{r}
+class(gdp_per_cap_tidy$gdppc)
+```
+
+It is not numeric, but we want it to be. How can we coerce these values to be numeric? Does anyone know why this might solve the code issue we just experienced? 
+
+**Your Answer**
+
+```{r}
+
+```
+
+As you can see, when we told R that the column should contain numbers, there were some values that it didn't know how to handle (because they weren't numbers). By default, it sets these values to "NA" which actually makes them easier for us to filter out.
+
+Now, let's try removing countries with no data again (try running that code that didn't work):
+
+```{r}
+
+```
+
+We've managed to remove all the countries (the dataset actually includes regions and other aggregate categories of states as well) that had no data. For our final task, let's compute the year-over-year change in GDP per capita for each observation as a percentage. After adding it to the dataset, create a histogram so you can see the distribution of annual growth or decline in GDP per capita. What other visualization would you use to understand something else about this data?
+
+Complete this code:
+
+gdp_per_cap_change <- gdp_per_cap_tidy_subset %>%
+  _____(_____) %>%
+  _____(country, year, by_group = TRUE) %>%
+  _____(rate = 100 * (gdppc - ___ (gdppc)) /____(gdppc)) %>%
+  ungroup()
+
+```{r}
+
+```
+
+Code for your plot goes here:
+
+```{r}
+
+```
+
+## Merging datasets
+
+Located in the same folder as the GDP data is zipped GNI data. It was downloaded from the same source and has a similar structure. See if you can follow the steps above to convert it to a tidy dataset and then merge the two using a join function. Would you be able to join them if you were working with the raw data? 
+
+I will post my code on Friday morning. 
