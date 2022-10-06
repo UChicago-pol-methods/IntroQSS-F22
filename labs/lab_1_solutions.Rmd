@@ -1,0 +1,218 @@
+---
+title: "Lab 1 Solutions"
+author: "Oscar Cuadros"
+date: "September 30, 2022"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(scales)
+```
+
+
+## Goals for today
+
+For the first lab, we will reverse engineer some plots using a relatively small, historical dataset. This should help you practice the ``grammar of graphics'' as well as the process of downloading, completing, and knitting your assignments. This lab is based on the structure of the first assignment. 
+
+## Load and look at the data
+
+METHOD 1
+
++ STEP 0: Installing packages in R (tidyverse, haven, readxl, rmarkdown)
+
+```{r}
+
+```
+
+
++ STEP 1: Call the libraries you need
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse) # csv, tsv, fwf
+library(haven) # sas(SAS), sav(SPSS), dta(Stata)
+library(readxl) # xlsx, xls(Excel)
+```
+
++ STEP 2: Set your file path
+
+```{r, message = FALSE,  echo=TRUE}
+setwd("C:/Users/cuadr/OneDrive/Escritorio/UCHICAGO/7. Intro QMSC 2022/Lab/2022/1")
+
+# To reset your path:
+# require("knitr")
+# opts_knit$set(root.dir = "C:/Users/cuadr/OneDrive/Escritorio/UCHICAGO/7. Intro QMSC 2022/Lab/2022/1")
+```
+
+
++ STEP 3: Upload your data set in R
+
+```{r, message = FALSE}
+midwest <- read_dta("midwest.dta")
+
+male_female <- read.delim("male_female_counts.txt")
+
+college <- read.csv("College.csv")
+
+world_wealth_inequality <- read_excel("world_wealth_inequality.xlsx")
+````
+
++ Now check your data!
+
+```{r}
+View(midwest)
+View(male_female)
+View(college)
+View(world_wealth_inequality)
+```
+
+METHOD 2
+
+```{r, message = FALSE, echo = FALSE}
+#set path to retrieve data from Git repository
+data_path <- "https://raw.github.com/UChicago-pol-methods/IntroQSS-F22/main/data/"  
+```
+
+
+```{r, message = FALSE, echo = FALSE}
+#retrieve data and save as dataframe, specify col types
+df <- read_csv(str_c(data_path, "uk_coal_tables.csv"), 
+               col_types = "cddddddd", 
+               na = "N/A") 
+
+df
+```
+
+Don't worry if you cannot interpret the code above. If you can, excellent! All you need to know is that our data is now in the environment and saved as an object called ``df`` (for ``dataframe'').
+
+Before we worry about visualizing the data, let's look at what it contains. Run the chunk below to view the column headings and first several rows of data. 
+
+```{r, message = FALSE}
+head(df)  #show col names and several rows of data
+```
+
+**What are the variables contained in the data set?**
+
+Country, year, proportion of consumed coal that was imported, proportion of the consumption that was imported from the UK, proportion of the imported that came from the UK, amount imported, amount produced, and amount exported.
+
+**What does each row represent? (i.e. what is the \textit{unit of observation}?)**
+
+Each row is unique to a given country in a specific year. We would say the unit of observation is a ``country-year.'' 
+
+**Notice that the first several rows of ``Proportion_Imported_From_UK'' are empty. Why might this data be missing? (hint: look at column 1) **
+
+By definition, the UK cannot import coal from the UK. Therefore, it is nonsensical to think about this variable taking on any value for these observations. 
+
+
+## First plot
+
+For the first plot, most of the code has been filled in for you. Alter the code to recreate this image.
+
+```{r, message = FALSE}
+plot_1 <- ggplot(data = df, 
+                 #create plot, specify data and global aes
+                 mapping = aes(x = Year, 
+                               y = Proportion_Imported_From_UK, 
+                               linetype = Country)) + 
+  geom_line() + #generate line graph
+  labs(x = "Year", 
+       y = "Proportion of Consumed Coal Imported from UK", 
+       title = "Dependence on UK Coal Over Time") #title and labels
+
+plot_1
+```
+
+
+## Second plot
+
+For the second plot, more of the code is missing. See if you can recreate the image. (hint, the line being fitted is a linear model)
+
+```{r, message = FALSE}
+plot_2 <- ggplot(data = df, 
+                 #create plot, specify data and global aes
+                 mapping = aes(x = Tons_Produced, 
+                               y = Tons_Exported)) + 
+  geom_point() + #generate scatterplot
+  geom_smooth(method = "lm", 
+              color = "blue") + #add lm
+  labs(x = "Tons Produced", 
+       y = "Tons Exported", 
+       title = "Coal Production and Exports") #labels
+
+plot_2
+```
+
+**What relationship does this plot represent?**
+
+It shows us what happens to coal exports as coal production increases.
+
+**Does the overall trend (as represented by the line) fit your expectations?**
+
+It should fit your expectations. In general, exports increase as production increases. However, the relationship is not 1:1, suggesting that countries don't export all of increased consumption.
+
+**Why do you think there is a cluster of points in the bottom right corner?**
+
+These observations probably come from a highly industrialized country which has large coal reserves: they produce a lot, but export less than expected, suggesting they consume much of it domestically.  
+
+**What about the points in the lower left?**
+
+These are likely observations from countries who have few coal reserves. They are able to produce and export very little, relative to some other countries.
+
+## Third Plot
+
+Since we suspect that the clustering is the result of different countries exporting different proportions of the coal they produce, we can alter the code above slightly to color the points by country and fit a separate line for each country. Complete the code to produce this plot.
+
+```{r, message = FALSE}
+plot_3 <- ggplot(data = df, 
+                 #create plot, specify data and global aes
+                 mapping = aes(x = Tons_Produced, 
+                               y = Tons_Exported, 
+                               color = Country)) + 
+  geom_point() + #scatterplot layer
+  geom_smooth(method = "lm") + #lm layer
+  labs(x = "Tons Produced", 
+       y = "Tons Exported", 
+       title = "Coal Production and Exports by Country") #labels
+
+plot_3
+```
+
+**What issues do you see with this plot?**
+
+Some countries produce and export \textbf{A LOT} more than some of the others. This makes it difficult to really see what is happening with the countries who are clustered in the bottom left. 
+
+**How might we address this concern with a different visualization?**
+
+One way we can solve this is by \textit{faceting}. Faceting breaks up a single plot into a series of plots by the value of a categorical variable (in this case, ``Country''). 
+
+## Fourth Plot
+
+```{r, message = FALSE}
+plot_4 <- ggplot(data = df, #create plot, specify data and global aes
+                 mapping = aes(x = Tons_Produced, 
+                               y = Tons_Exported, 
+                               color = Country)) + 
+  geom_point() + #scatterplot layer
+  geom_smooth(method = "lm") + #lm layer
+  #facet by country, allow variable scales
+  facet_wrap(vars(Country), scales = "free") + 
+  #resize and rotate x axis labels 45 degrees 
+  theme(text = element_text(size=10),
+        axis.text.x = element_text(angle=90, hjust=1)) +
+  #force scientific notation on axis labels
+  scale_y_continuous(labels = scientific) +
+  scale_x_continuous(labels = scientific) +
+  labs(x = "Tons Produced", 
+       y = "Tons Exported", 
+       title = "Faceted Coal Production and Exports by Country") #labels
+
+plot_4
+
+
+```
+
+*While colors can be a powerful visualization tool, line type, point shape, and other tools make your work more accessible to people who are colorblind. Alternatively, there are packages outside the tidyverse (e.g. ``ggthemes``) which contain colorblind friendly palettes or allow you to manually define a palette using several different color reference systems.*
