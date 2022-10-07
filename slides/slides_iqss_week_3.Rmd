@@ -1,0 +1,220 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 3. Summarizing distributions"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning = F, message = F)
+```
+
+
+# Expected value: discrete case 
+
+For discrete R.V. with probability mass function (PMF) $f$, the *expected value* of $X$ is 
+
+$$E[X] = \sum_x x f(x) $$
+
+Could write 
+
+$$E[X] = \sum_{x \in \text{Supp}[X]} x f(x) $$
+
+---
+
+# Example 
+
+| $x$  | $P(X = x)$ |
+|------|:------------:|
+|   0   |     .2     |
+|   1   |     .5     |
+|   3   |     .3     |
+
+What is $E[X] = \sum_x x f(x)$?
+
+--
+
+$$\begin{aligned}
+E[X] &= \sum_x x f(x) \\
+ &= 0 \times .2 + 1 \times .5 + 3 \times .3 \\
+ &= 1.4
+\end{aligned}$$
+
+
+---
+
+# Illustration
+
+```{r, echo = F}
+dat <- tibble(x = c(0, 0, 1, 1, 3, 3), y = c(0, .2, 0, .5, 0, .3), item = c(1, 1, 2, 2, 3, 3), type = rep(c("bottom", "top"), 3)) 
+
+dat|> 
+  ggplot(aes(x = x, y = y, group = item)) + 
+  geom_line() + 
+  geom_point(data = filter(dat, type == "top")) + 
+  expand_limits(y = .65) +
+  geom_vline(xintercept = .5*1 + .3*3, lty = 2)
+```
+
+---
+
+# E[X] as X's center of mass 
+
+Suppose we place a weight $f(x)$ at each value $x \in \text{Supp}(X)$ along a weightless rod.
+
+--
+
+Where is the **center of mass**, i.e. the point where the rod balances?
+
+--
+
+It is the point $c$ where $\sum_x (x - c) f(x) = 0$.
+
+--
+
+That point is $E[X]$.
+
+--
+
+**Proof**:
+
+$$\begin{aligned} \sum_x (x - E[X]) f(x) &= \sum_x \left( x f(x) - E[X] f(x) \right) \\
+&= \sum_x x f(x) -  \sum_x E[X] f(x) \\
+ &= E[X] - E[X] \sum_x f(x) \\
+ &= E[X] - E[X] \\
+ &= 0
+\end{aligned}$$
+
+---
+
+# E[X] as a "good guess"
+
+Define **mean squared error** of a R.V. $X$ about $c$:
+
+$$ E[(X - c)^2] $$
+
+--
+
+$E[X]$ is the choice of $c$ that minimizes MSE. (Theorem 2.1.24, illustrated on homework.)
+
+---
+
+# Expectation vs average
+
+Given a set of numbers $x_1, x_2, \ldots, x_n$ we can take the **average**: 
+
+$$ \overline{x} = \frac{1}{n} \sum_{i = 1}^n x_i $$
+
+What is the connection between $E[X] = \sum_x x f(x)$ and $\overline{x} = \frac{1}{n} \sum_{i = 1}^n x_i$?
+
+--
+
+- $E[X]$ summarizes a random variable $X$; $\overline{x}$ summarizes a set of numbers
+- if each $x_i$ is an (iid) **sample** from $X$, $\overline{x}$ approximates $E[X]$
+- if each $x$ appears with frequency $f(x)$, then $\overline{x} = E[X]$
+
+---
+
+# Expectation vs average (2)
+
+Given PMF:
+
+| $x$  | $P(X = x)$ |
+|------|:------------:|
+|   0   |     .2     |
+|   1   |     .5     |
+|   3   |     .3     |
+
+Then $E[X] = 0 \times .2 + 1 \times .5 + 3 \times .3 = 1.4$.
+
+--
+
+Can also compute as the mean of a vector in which each $x$ appears with frequency $f(x)$: 
+
+```{r}
+x <- c(0, 0, 1, 1, 1, 1, 1, 3, 3, 3)
+mean(x)
+```
+
+--
+
+May clarify why, in any given sample, $\overline{x} \neq E[X]$.
+
+---
+
+# The continuous case 
+
+For continuous R.V. $X$, 
+
+$$ E[X] = \int_{-\infty}^{\infty} x f(x) dx $$ 
+
+--
+
+```{r, echo = F}
+xs <- seq(-.5, 2, by =.01)
+ys <- dnorm(xs)
+
+# get expectation numerically -- two options
+
+# weighted sum of xs in my sequence
+ex1 <- sum(xs*ys)/sum(ys)
+
+# average of a sample
+x_samp0 <- rnorm(100000)
+x_samp <- x_samp0[x_samp0 > -.5 & x_samp0 < 2]
+ex2 <- mean(x_samp)
+
+# plot it
+tibble(x = c(-.5, xs, 2), y = c(0, ys, 0)) |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_polygon(fill = "darkgray") + 
+  theme_bw() + 
+  geom_vline(xintercept = ex1, col = "red") # +
+  # geom_vline(xintercept = ex2, col = "blue") # 
+
+```
+
+???
+
+Just convey idea that balance will still work, we won't be doing integration.
+
+And we will stick to the discrete case as much as possible.
+
+---
+
+# Expectation of a function of an R.V.
+
+Let $g(X)$ be a function of discrete random variable $X$. It is a random variable with PMF $f(g(X))$. 
+
+(e.g. $g(X) = 3X$)
+
+
+Then $$ E[g(X)] = \sum_{x \in \text{Supp}(X)} g(x) f(x)$$
+
+<!-- $$\begin{aligned} -->
+<!-- E[g(X)] &= \sum_{x \in \text{Supp}(g(X))} g(X) f(g(x)) \\ -->
+<!-- &= \sum_{x \in \text{Supp}(X)} g(x) f(x) \\ -->
+<!-- \end{aligned}$$. -->
+
+
+--
+
+
+Why is this the same as $\sum_{x \in \text{Supp}(g(X))} g(X) f(g(x))$?
+
+| $x$  | $P(X = x)$ | $g(x)$ | $P(g(X) = g(x))$
+|------|:------------:|------|:-------:|  
+|   0   |     1/3     |  0 |  1/3 |
+|   1   |     2/3    |  3 |  2/3 |
+
+
+
+
+
