@@ -1,0 +1,674 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 2. Brief Overview of Probability, pt. 1"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+      countIncrementalSlides: no
+---
+```{r setup, include=FALSE}
+library(tidyverse)
+set.seed(60637)
+```
+
+```{css css, echo=FALSE}
+.small-output .remark-code{
+  font-size: small;
+}
+
+.highlight-last-item > ul > li, 
+.highlight-last-item > ol > li {
+  opacity: 0.5;
+}
+.highlight-last-item > ul > li:last-of-type,
+.highlight-last-item > ol > li:last-of-type {
+  opacity: 1;
+}
+```
+
+
+
+### Housekeeping
+
+- Managing homework assignments
+  - Grades are check (-/+)
+  - Look over the homework early in the week
+  - If you spend $>30$ minutes without making progress, go to stack overflow
+  - Use office hours
+  
+- We'll use LaTeX on homework this week—check explainer on GitHub
+
+---
+
+ 
+# What do we do with data
+
+Now that we've gotten started on working with data...what do we want to get from that data?
+
+--
+
+- Describe what's going on in the data
+ 
+--
+
+ - We can do a pretty good job of this with the data visualization tools we have, along with summary statistics for numerical descriptions
+
+--
+
+This is already a really useful start, but beyond just describing the data we see in front of us, we may have other goals. We may want to:
+
+--
+
+- Make generalizations to a larger population
+
+--
+
+- Make informed guesses about how things would have turned out differently, if something different had happened
+
+--
+
+These latter two are called *inference*, and we'll need some additional tools and assumptions to make headway on them
+
+---
+# Probability
+## Why do we use probability theory?
+
+- Probability theory allows us to talk about *random* events in structured way. 
+
+--
+
+ - Often, we see only part of the picture we'd like to talk about. We only see some of the data, or we can only see one version of events. 
+
+--
+
+ - Probability theory gives us a way to describe the process that results in the data that we observe. 
+
+--
+
+ - It also allows us to *formalize our uncertainty* when making inference. 
+
+
+---
+
+## What does it mean to describe real world events as "random"?
+
+- Probability theory is an abstract construct, but it is useful for empirical research to create a model of the world in which events are probabilistic. 
+
+--
+
+ - If we are conducting measurement on some population but can only observe a sample, we assume that there is some randomness to who we observe and who we don't observe.
+
+--
+
+
+ - If we are describing events with counterfactuals, such as turning out to vote or testing positive for COVID, it can be useful to describe those events as probabilistic.
+
+--
+
+
+- These are *models* of how the world works, and they help us make sense of the fundamentally squishy nature of social science research. With limited information about the world, we operate with uncertainty. Assigning probabilities conditional on the information we *do* have helps us formalize that uncertainty. 
+--
+Even if we don't necessarily believe that human behavior is "random." 
+
+---
+## Flipping a coin twice
+
+Suppose we are flipping a coin twice, and the coin is fair. This is a random process, and we will describe the probability space associated with this process. 
+
+---
+
+
+name: terms
+class: highlight-last-item
+
+## Useful terms in probability
+
+
+--
+
+-  $\Omega$ : Sample space. Describes all possible outcomes in our setting.
+
+--
+
+ - $\omega$ : Generic notation for the realized outcomes in the sample space.
+
+--
+
+ - Here, $\Omega = \{HH, HT, TH, TT \}$.
+
+--
+
+- Event: a subset of $\Omega$. 
+--
+
+ - We will often use terms like $A$ or $B$ to define events. 
+ 
+--
+ 
+ - Here, the event that we get a head on first flip is $A = \{HT, HH\}$. 
+
+--
+
+- $S$ : Event space. Describes all subsets of events, including null set. [[Full event space]](#event_space)
+
+--
+
+ - We use this in addition to the sample space, so we can describe all types of events that we can define the probability for. 
+
+--
+
+- $\textrm{P}$ : Probability measure. An operator that assigns probability to all events in the event space. 
+
+--
+
+ - Here, the event that we get a head on the first flip, $\textrm{P}[A] = 1/2$. 
+
+
+???
+
+In probability, we often use uppercase terms to denote the random process, and lowercase terms to denote specific outcomes of that random process.
+
+
+---
+## An aside on mathematical notation 
+
+Mathematical notation is a tool that gives us a common language to express concepts with precision. There are different conventions in different communities, and no approach is "right" or "wrong"—it's just a question of whether your notation is appropriately communicating to your audience what you want it to. 
+
+--
+
+To use mathematical notation in R Markdown, write LaTeX typesetting commands inside of dollar signs. 
+--
+
+
+For example, 
+
+`$Y = \beta_0 + \beta_1 X$` 
+
+--
+
+is rendered as 
+
+$Y = \beta_0 + \beta_1 X$.
+
+
+We have just used probability notation as a way to fully describe any random generative process. 
+
+---
+
+We can simulate our double coin flip process in R, using the `sample()` function. There are four possible outcomes, and all are equally likely. 
+
+--
+
+```{r coinflip}
+Omega <- c('HH', 'HT', 'TH', 'TT')
+probs <- c(0.25, 0.25, 0.25, 0.25)
+
+sample(x = Omega,
+       size = 1,
+       prob = probs)
+
+```
+
+--
+
+We can run this simulation many times, and our results should *approximately* follow the probabilities we assigned. 
+
+```{r coinflip_many}
+n <- 1000
+result_n <- sample(x = Omega,
+       size = n,
+       prob = probs,
+       replace = TRUE)
+
+table(result_n)
+```
+
+---
+
+## Independent events
+
+- Two events are *independent* if
+
+$$
+\textrm{P}[AB] = \textrm{P}[A]\textrm{P}[B]
+$$
+
+--
+
+*Notational aside: The event $AB$ is that both $A$ and $B$ happen. There are other ways to write this, including $A \cap B$.*
+
+---
+
+Returning to our example of flipping two fair coins. Let's say:
+
+- Event $A$: we get a head on the first coin flip; $A = \{HT, HH\}$. 
+- Event $B$: we get a head on the second coin flip; $B = \{TH, HH\}$. 
+- We can see the event $AB$ as the overlap in their respective sets, $AB = \{HH\}$
+
+---
+class: size-tiny
+
+The coin flips are unrelated, so the events should be independent. We can check this mathematically.
+
+--
+
+- First, we know that all of the outcomes $\Omega = \{HH, HT, TH, TT \}$ are equally likely.
+
+
+$$
+\begin{align}
+\textrm{P}[A] &= \textrm{P}[\{HT\}] + \textrm{P}[\{HH\}] = 0.25 + 0.25 = 0.5\\\
+\textrm{P}[B] &= \textrm{P}[\{TH\}] + \textrm{P}[\{HH\}] = 0.25 + 0.25 = 0.5
+\end{align}
+$$
+
+--
+
+Then, we can calculate the product of the probabilities, and the probability of the joint event.
+
+$$
+\begin{align}
+\textrm{P}[A]\textrm{P}[B] &= 0.5 \times 0.5 = 0.25\\\
+\textrm{P}[AB] &= \textrm{P}[\{HH\}] = 0.25\
+\end{align}
+$$
+
+--
+
+We see that they are the same, so we have independence.
+
+$$
+\textrm{P}[A]\textrm{P}[B] = \textrm{P}[AB]
+$$
+
+
+---
+
+class: small-output
+
+#### We can also check if observed proportions in our simulations show the same thing. 
+
+```{r check}
+Omega <- c('HH', 'HT', 'TH', 'TT');  probs <- c(0.25, 0.25, 0.25, 0.25)
+result_n <- sample(x = Omega, 
+                   size = n,
+                   prob = probs,
+                   replace = TRUE)
+
+(observed_props <- prop.table(table(result_n)))
+```
+
+--
+
+```{r PA}
+(PA <- mean(result_n == 'HT' | result_n == 'HH'))
+```
+
+--
+
+```{r PB}
+(PB <- mean(result_n == 'TH' | result_n == 'HH'))
+```
+
+--
+
+```{r PAB}
+(PAB <- mean(result_n == 'HH'))
+PA*PB
+```
+
+The proportions look pretty close. 
+
+---
+class: small-output
+
+#### What about for a case where $A$ and $B$ are not independent? 
+
+--
+
+- $A$ is still the event we get a head on the first coin flip; $A = \{HT, HH\}.$
+
+- $B$ is now the event that we get a head on both coin flips; $B = \{HH\}$. 
+
+- $AB$ is the intersection of these two sets, which is just $AB = \{HH\}$. 
+
+--
+
+```{r check2}
+(observed_props <- prop.table(table(result_n)))
+```
+
+--
+
+```{r PA2}
+(PA <- mean(result_n == 'HT' | result_n == 'HH'))
+```
+
+--
+
+```{r PB2}
+(PB <- mean(result_n == 'HH'))
+```
+
+--
+
+```{r PAB2}
+(PAB <- mean(result_n == 'HH'))
+PA*PB
+```
+
+
+---
+
+# Conditional probability
+
+If $\textrm{P}[B]>0$, the *conditional probability* of an event $A$ occurring, given event $B$ has occurred is:
+
+$$
+\textrm{P}[A|B] = \frac{\textrm{P}[AB]}{\textrm{P}[B]}
+$$
+--
+This can also be read as, out of all of the times event $B$ occurs, how many times does event $A$ also occur?
+
+---
+
+For our coin flip example, we'll stick with:
+- $A$ is  the event that we get a head on the first coin flip; $A = \{HT, HH\}$. 
+- $B$ is the event that we get a head on the both coin flips; $B = \{HH\}$. 
+- $A  B$ is $\{HH\}$
+
+--
+
+$$
+\begin{align}
+\textrm{P}[A|B]& = \frac{\textrm{P}[AB]}{\textrm{P}[B]}\\\
+& = \frac{\textrm{P}[\{ HH \}]}{\textrm{P}[\{ HH \}]}\\\
+& = 1
+\end{align}
+$$
+
+--
+
+What is $\textrm{P}[B|A]$?
+
+---
+class: small-output, size-small
+
+## Bayes Rule
+
+A useful theorem to return to is *Bayes Rule*
+
+$$
+\textrm{P}[A|B] = \frac{\textrm{P}[B|A]\textrm{P}[A]}{\textrm{P}[B]}
+$$
+
+--
+Why is Bayes rule so useful? 
+--
+It basically tells us how we update probability based on observed data. 
+
+---
+class: small-output, size-small
+
+## Bayes Rule
+
+Example: Suppose everyone in the University of Chicago community is given a new rapid test for COVID. 
+
+- We are concerned with *false negatives*, when we get a negative test for a person who actually *is* infected.
+- And *false positives*, when we get a positive test for a person who *is not* infected.
+
+---
+class: small-output, size-small
+
+## Bayes Rule
+
+
+
+Example: Suppose everyone in the University of Chicago community is given a new rapid test for COVID. 
+
+A student gets a positive test back. What is the probability that they have COVID?
+
+---
+
+class: small-output, size-small
+
+## Bayes Rule
+
+Event $A$: person has COVID
+
+Event $B$:  a positive test
+
+--
+
+- Should we think these events are independent?
+
+---
+
+class: small-output, size-small
+
+## Bayes Rule
+
+Event $A$: person has COVID
+
+Event $B$:  a positive test
+
+
+
+
+- Doctors know that the probability of having COVID is 3% in this population : $\textrm{P}[A]$ 
+```{r PA3}
+PA <- 0.03
+```
+--
+- The overall rate of positive tests is 5% : $\textrm{P}[B]$ 
+```{r PB3}
+PB <- 0.05
+```
+--
+- If you have COVID, your test will turn up positive 95% of the time : $\textrm{P}[B|A]$ 
+```{r PBifA}
+PB_if_A <- 0.95
+```
+
+
+--
+
+$$
+\begin{align*}
+\textrm{P}[A|B] & = \frac{\textrm{P}[B|A]\textrm{P}[A]}{\textrm{P}[B]}
+\end{align*}
+$$
+
+--
+
+```{r Bayes}
+( PB_if_A * PA )/PB
+```
+
+
+---
+## Prosecutor's fallacy
+
+$$
+\textrm{P}[A|B]\overset{?}= \textrm{P}[B|A]
+$$
+--
+
+As a general rule, we cannot assume the conditional probability of $A$ given $B$ is the same as the probability of $B$ given $A$
+
+--
+- In a court case, the probability that a person is guilty given that we see a DNA match is NOT the same as the probability of a DNA match given  that they are guilty.  
+
+--
+
+- This fallacy often occurs when we observe evidence that we are very unlikely to see among innocent people, and very likely to observe among guilty people
+
+--
+
+- But the overall number of innocent people in the population is very large, so the number of false positives is much higher than the number of true positives
+
+---
+### Why thinking about conditional probability is so important in social science research
+
+```{r covid-race, out.width="50%", echo=FALSE, fig.align = 'center'}
+knitr::include_graphics('assets/covid_and_race.png')
+```
+
+---
+### Why thinking about conditional probability is so important in social science research
+
+Article source: [https://www.nytimes.com/2022/06/09/briefing/covid-race-deaths-america.html](https://www.nytimes.com/2022/06/09/briefing/covid-race-deaths-america.html)
+---
+### Why thinking about conditional probability is so important in social science research
+
+Are white Americans *really* more at risk of dying of COVID than blacks, Latinos, and Asian Americans?
+
+--
+
+It certainly looks like it 
+--
+(May 2022 data)
+
+--
+
+```{r covid-mortality, out.width="90%", echo=FALSE, fig.align = 'center'}
+knitr::include_graphics('assets/covid_mortality_rates.png')
+```
+
+
+---
+### Why thinking about conditional probability is so important in social science research
+
+But looking more closely, trends look different if we account for *age*. 
+
+
+--
+```{r covid-risk, out.width="90%", echo=FALSE, fig.align = 'center'}
+knitr::include_graphics('assets/covid_risk.png')
+```
+---
+### Why thinking about conditional probability is so important in social science research
+
+But looking more closely, trends look different if we account for *age*. 
+
+Why?
+
+---
+<!-- ### Why thinking about conditional probability is so important in social science research -->
+
+<!-- "20% of people hospitalized with COVID-19 are vaccinated" -->
+
+<!-- -- -->
+
+<!-- Does this tell us that vaccines aren't very effective? -->
+
+<!-- -- -->
+
+<!-- Some things we should think about: -->
+<!-- - What percentage of the population in areas served by hospitals are vaccinated? -->
+<!-- - Are people who are vaccinated at higher risk for breakthrough cases? Or more likely to be hospitalized? Are they older, or have pre-existing conditions? -->
+
+
+
+<!-- --- -->
+
+### Why thinking about conditional probability is so important in social science research
+
+
+
+What data do you need to answer the question: "Do white officers shoot minority citizens at a higher rate than non-white officers?"
+
+---
+
+```{r npr, echo=FALSE}
+knitr::include_graphics('assets/npr.png')
+```
+
+---
+
+
+```{r guardian, echo=FALSE}
+knitr::include_graphics('assets/guardian.png')
+```
+
+
+---
+
+
+
+```{r johnson, echo=FALSE}
+knitr::include_graphics('assets/johnson-et-al-PNAS.png')
+```
+
+- In a 2020 PNAS paper, Johnson and co-authors evaluated the relationship between race of victims shot by police, and the characteristics of the police shooters
+
+--
+
+- The authors claim, "White officers are not more likely to shoot minority civilians than non-White officers"--and the paper has been used in congressional testimony to support the claim that diversity in police forces would not be beneficial in reducing bias in officer-involved shootings
+
+--
+
+- Their database only has data on fatal shootings—not on cases where people were NOT shot. 
+- Their results report "whether a person fatally shot was more likely to be Black (or Hispanic) than White" conditional on the race of the officer involved
+
+--
+
+- Does this address original claim?
+
+---
+"White officers are not more likely to shoot minority civilians than non-White officers"
+
+$$
+\begin{align}
+\textrm{P}[\text{shot} | \text{White officer, minority civilian}] -\\\
+\textrm{P}[\text{shot} | \text{Minority officer, minority civilian}]
+\end{align}
+$$
+
+What data are we missing to address this question?
+
+--
+
+- Dean Knox & Jonathan Mummolo wrote a letter critiquing the original article, based on the authors' failure to appropriately apply Bayes Rule;
+
+- The article was eventually retracted
+
+--
+
+- (It's a bit more complicated than that, but know your conditional probability when thinking about difficult subjects!)
+
+
+
+---
+## Some reference texts
+
+1. Aronow, P., & Miller, B. (2019). Foundations of Agnostic Statistics. Cambridge: Cambridge University Press. Chapter 1. Probability Theory. 
+1. Wasserman, L. (2004). All of Statistics: A Concise Course in Statistical Inference. New York: Springer. Chapter 1. Probability Theory and Chapter 2. Random Variables. 
+1. Hernán MA, Robins JM (2020). Causal Inference: What If. Boca Raton: Chapman & Hall/CRC.
+
+---
+
+name: event_space
+
+Flipping two coins event space:
+
+
+$$\begin{align}
+S & = \{\emptyset, \\
+&\{HH\}, \{HT\},\{TH\}, \{TT\},\\
+&\{HH, HT\}, \{HH, TH\},\{HH, TT\}, \{HT, TH\}, \{HT, TT\}, \{TH, TT\}\\
+& \{HH, HT, TH\}, \{HH, HT, TT\}, \{HH, TH, TT\}, \{HT, TH, TT\},\\
+\end{align}$$
+
+[[Back to terms]](#terms)
+
+
+```{r knit, echo=FALSE, message=FALSE, warning=FALSE, eval=FALSE}
+knitr::purl(input = "slides_iqss_week_2_pt1.Rmd",
+            output = "../code_etc_from_lecture/slides_iqss_week_2_pt1.R")
+```
+

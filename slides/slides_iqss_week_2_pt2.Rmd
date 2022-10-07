@@ -1,0 +1,833 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 2. Brief Overview of Probability, pt. 2"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+      countIncrementalSlides: no
+---
+
+exclude: true
+
+# Review
+
+---
+
+class: footnotesize
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(gridExtra)
+set.seed(60637)
+```
+
+```{css, echo=FALSE}
+.small-output .remark-code{
+  font-size: x-small;
+}
+
+# .show-only-last-code-result pre + pre:not(:last-of-type) code[class="remark-code"] {
+#     display: none;
+# }
+```
+
+<!-- ### Recall our terms from probability. Our random process: flipping a fair coin twice. -->
+
+<!-- -- -->
+
+<!-- - $\Omega$ : Sample space. Describes all possible outcomes in our setting. -->
+
+<!--   - $\omega$ : Generic notation for the realized outcomes in the sample space. -->
+<!--   - Here, $\Omega = \{HH, HT, TH, TT \}$. -->
+
+<!-- - Event: a subset of $\Omega$.  -->
+<!--   - We will often use terms like $A$ or $B$ to define events.  -->
+<!--   - In our example, the event that we get a head on the first flip is $A = \{HT, HH\}$.  -->
+
+<!-- - $S$ : Event space. Describes all subsets of events, including the null set. -->
+<!--   - We use this in addition to the sample space, so we can describe all types of events that we can define the probability for.  -->
+
+<!-- - $\textrm{P}$ : Probability measure. A function that assigns probability to all of the events in the event space.  -->
+<!--   - Here, since our coin is fair, for the event that we get a head on the first flip, $\textrm{P}[A] = 1/2$.  -->
+
+
+<!-- --- -->
+# Random variables
+
+- A random variable is a mapping $X$ from our sample space $\Omega$, to the Real numbers. 
+
+$$X : \Omega \to {\rm I\!R}$$
+--
+
+- Random variables are ways to quantify random events described by our sample space. 
+
+- We'll mostly work with random variables going forward, but it's important to remember that the random variable is built on the foundations of the sample space — and often, **you'll be the one deciding how that quantification happens.** 
+
+---
+
+For example, with our two coin flips, let $X(\omega)$ be the number of heads in the sequence $\omega$. 
+--
+Then the random variable, and its probability distribution, can be described as:
+
+
+|     $\omega$ | $\textrm{P}[\{\omega\}]$ | $X(\omega)$ |
+|-------------:|----------------:|------------:|
+| TT           | 1/4             | 0           |
+| TH           | 1/4             | 1           |
+| HT           | 1/4             | 1           |
+| HH           | 1/4             | 2           |
+
+and,
+
+| $x$   | $\textrm{P}[X = x]$
+|----:|------------:|
+| 0   | 1/4         |
+| 1   | 1/2         |
+| 2   | 1/4         |
+
+---
+
+class: small-output, small
+
+#### We can simulate this in `R` as well. 
+--
+
+```{r coinflipRV}
+X <- c(0, 1, 2)
+probs <- c(0.25, 0.5, 0.25)
+
+sample(x = X,
+       size = 1,
+       prob = probs)
+
+```
+
+--
+
+```{r coinflip_manyRV}
+n <- 1000
+result_n <- sample(x = X,
+                   size = n,
+                   prob = probs,
+                   replace = TRUE)
+
+table(result_n)
+```
+
+--
+
+
+```{r coinflip_massRV}
+
+prop.table(table(result_n))
+
+```
+
+---
+
+We can plot a histogram to look at the distribution of results. 
+```{r fig.width = 6, fig.height=6, fig.align='center'}
+
+ggplot(tibble(result_n), aes(x = result_n)) +
+  geom_histogram(bins = 3, position = 'identity', color = 'white')
+
+```
+
+---
+
+## Probability Mass Function of a discrete random variable
+
+- A random variable is *discrete* if it takes countably many values.
+
+--
+
+- The probability mass function of a discrete RV $X$ tells us the probability we will see an outcome at some value $x$. 
+
+--
+
+$$
+f(x) = \textrm{P}[X = x]
+$$
+
+--
+
+For our coin flip example, 
+
+
+$$
+f(x) = \begin{cases}
+1/4 & x = 0 \\\
+1/2 & x = 1 \\\
+1/4 & x = 2 \\\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+---
+
+## Illustrating the PMF of a discrete RV
+
+```{r, fig.width = 5, fig.height=5, fig.align = 'center', echo=FALSE}
+plotdata <- tibble(
+  x = c(-1, 0, 1, 2),
+  xend = c(0, 1, 2, 3),
+  fx = c(0, 1/4, 1/2, 1/4),
+  Fx = cumsum(fx)
+)
+
+ggplot(plotdata, aes(x = x, y = fx)) +
+  geom_point() +
+  coord_cartesian(xlim = c(-0.5, 2.5),
+                  ylim = c(0,1)) +
+  geom_segment(aes(x = x, y = c(0,0,0,0), xend = x, yend = fx)) +
+  ggtitle('PMF of X as number of heads in 2 fair coin flips')
+```
+
+--
+
+Note that the probabilities sum to 1. This is one of the foundational axioms of probability. 
+
+---
+## Cumulative Distribution Functions
+
+- The cumulative distribution function of $X$ tells us the probability we will see an outcome less than or equal to some value $x$. 
+
+--
+
+$$
+F(x) = \textrm{P}[X \le x]
+$$
+
+--
+
+For our coin flip example, 
+
+
+$$
+F(x) = \begin{cases}
+0 & x < 0 \\\
+1/4 & 0 \le x < 1 \\\
+3/4 & 1 \le x < 2 \\\
+1 & x \ge 2
+\end{cases}
+$$
+
+--
+
+CDFs are really useful, because if we know the CDF, we can fully describe the distribution of *any* random variable. 
+
+---
+
+## Illustrating the CDF of a discrete RV
+
+```{r coinflip_plotRV, fig.width = 5, fig.height=5, fig.align = 'center', echo=FALSE}
+ggplot(plotdata, aes(x = x, y = Fx)) +
+  geom_segment(aes(x = x, y = Fx, xend = xend, yend = Fx)) + 
+  geom_point() +
+  geom_point(aes(x = xend, y = Fx), shape= 21, fill = 'white') +
+  coord_cartesian(xlim = c(-0.5, 2.5),
+                  ylim = c(0,1)) +
+  ggtitle('CDF of X as number of heads in 2 fair coin flips')
+```
+
+---
+And we can use `ggplot2` to see what the *Empirical* CDF looks like
+```{r coinflip_simRV, fig.width = 5, fig.height=5, fig.align = 'center'}
+
+ggplot(tibble(result_n), aes(x = result_n)) +
+  stat_ecdf() +
+  coord_cartesian(xlim = c(-0.5, 2.5)) +
+  ylab('Empirical Fx') +
+  ggtitle('ECDF of X as number of heads in 2 fair coin flips')
+
+```
+
+---
+
+
+
+# Joint and conditional relationships
+
+---
+
+## Bivariate relationships
+
+We often care about how random variables vary with each other
+- age and voter turnout
+- sex and income
+- education and earnings
+
+--
+
+Just like with univariate random variables, we can describe these bivariate relationships by their distributions
+
+---
+
+## Joint PMF of discrete random variables
+
+$$
+f(x,y) = \textrm{P}[X=x, Y=y]
+$$
+
+---
+
+Returning to our example of flipping two fair coins
+- Let $X$ be 1 if we get *at least one heads*, and 0 otherwise
+- Let $Y$ be 1 if we get *two* heads in our two coin flips, and 0 otherwise
+
+--
+
+Then the joint probability distribution can be described as:
+
+
+|     $\omega$ | $\textrm{P}[\{\omega\}]$ | $X(\omega)$ |  $Y(\omega)$ |
+|-------------:|----------------:|------------:|-------------:|
+| TT           | 1/4             | 0           | 0            |
+| TH           | 1/4             | 1           | 0            |
+| HT           | 1/4             | 1           | 0            |
+| HH           | 1/4             | 1           | 1            |
+
+or, considering the joint PMF,
+
+
+$$
+f(x, y) = \begin{cases}
+1/4 & x = 0, y = 0 \\\
+1/2 & x = 1, y = 0 \\\
+1/4 & x = 1, y = 1 \\\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+---
+
+
+class: small-output, scriptsize
+
+```{r coinflip, fig.width = 6, fig.height=3.5, fig.align = 'center'}
+Omega <- c('HH', 'HT', 'TH', 'TT')
+probs <- c(0.25, 0.25, 0.25, 0.25)
+
+result_n <- sample(x = Omega,
+                   size = n,
+                   prob = probs,
+                   replace = TRUE)
+
+result_mat <- tibble(omega = result_n,
+                     x = case_when(result_n == 'TT' ~ 0, TRUE ~ 1),
+                     y = case_when(result_n == 'HH' ~ 1, TRUE ~ 0))
+
+options <- list(theme(panel.grid.minor = element_blank()), scale_x_continuous(breaks = c(0, 1))) # save some style options
+
+p1 <- ggplot(result_mat) + geom_histogram(aes(x = x), bins = 3, position = 'identity', color = 'white') + options
+  
+p2 <- ggplot(result_mat) + geom_histogram(aes(x = y), bins = 3, position = 'identity', color = 'white') + options
+
+grid.arrange(p1, p2, ncol = 2)
+
+```
+
+--
+
+Seeing $X$ and $Y$ plotted side by side doesn't really give us a full picture of their relationship. 
+--
+
+These are the *marginal* distributions of $X$ and $Y$, i.e., their distributions where we *marginalize* or sum over the distribution of the other random variable. 
+
+---
+
+## Marginal distributions
+
+$$
+f\_X(x) = \textrm{P}[X = x]=\sum\_y \textrm{P}[X=x, Y=y] = \sum\_yf\_{X, Y}(x,y)
+$$
+
+--
+
+
+|         | $Y = 0$ | $Y = 1$ |     |
+|---------|---------|---------|-----|
+| $X = 0$ | 1/4     | 0       | **1/4** |
+| $X = 1$ | 1/2     | 1/4     | **3/4** |
+|         | **3/4**     | **1/4**     |     |
+
+
+--
+
+*Notational aside: we can subscript $X$ in $f_X$ to denote that it is the mass function of $X$ specifically, as $X$ and $Y$ have different probability mass functions. But often we will just omit the subscript for convenience.*
+
+
+---
+
+```{r, fig.width = 5, fig.height=5, fig.align = 'center', echo=FALSE}
+hist_top <- p1 
+empty <- ggplot()+geom_point(aes(1,1), colour="white")+
+  theme(axis.ticks=element_blank(), 
+        panel.background=element_blank(), 
+        axis.text.x=element_blank(), axis.text.y=element_blank(),           
+        axis.title.x=element_blank(), axis.title.y=element_blank())
+
+count_mat <- result_mat %>% 
+  group_by(x, y) %>% 
+  summarize(count = n(), .groups = 'keep')
+
+scatter <- ggplot(result_mat, aes(x = x, y = y, color = omega)) +
+  geom_jitter(width = 0.25, height = 0.25, alpha = 0.5) + 
+  scale_x_continuous(breaks = c(0, 1)) +
+  scale_y_continuous(breaks = c(0,1))+
+  theme(panel.grid.minor = element_blank(), legend.position = 'none') 
+
+hist_right <- p2 + coord_flip()
+
+grid.arrange(hist_top, empty, scatter, hist_right, ncol=2, nrow=2, widths=c(4, 2), heights=c(2, 4))
+
+```
+
+Plotting $X$ and $Y$ jointly gives us a better understanding of their joint relationship. 
+
+---
+
+## Conditional distributions
+
+We are also often interested in conditional relationships. 
+
+$$
+f\_{Y|X}(y|x) = \textrm{P}[Y = y | X = x] = \frac{\textrm{P}[X=x, Y=y]}{\textrm{P}[X=x]}  = \frac{f\_{X,Y}(x,y)}{f\_X(x)} 
+$$
+
+
+--
+For example, 
+
+
+$$
+f_{Y|X}(y|x) = \begin{cases}
+1 & x = 0, y = 0 \\\
+2/3 & x = 1, y =0  \\\
+1/3 & x = 1, y = 1 \\\
+0 & \text{otherwise}
+\end{cases}
+$$
+--
+
+Here, what is the probability of observing two heads, conditional on having observed at least one heads?
+
+---
+# Applications
+
+- Coin flips are a pretty trivial example of a random event $\rightarrow$ random variable.
+
+--
+
+- But often, as researchers, our job is to map events that happen in the world to variables in our data sets. 
+
+
+---
+## Presidential Daily Briefing
+#### [thanks to Prof. Austin Carson]
+
+```{r pdb_fig0, echo=FALSE, out.width = "75%", fig.align="center"}
+knitr::include_graphics('assets/pdb.png')
+```
+
+---
+## Presidential Daily Briefing
+
+
+.right-column[
+```{r pdb_fig, echo=FALSE, out.width = "75%", fig.align="center"}
+knitr::include_graphics('assets/pdb_7-AUG-65.jpg')
+```
+]
+
+--
+
+What goes into the data set?
+
+--
+
+.left-column[
+
+
+- .small[Unit of observation: "entries" in daily briefings]
+- .small[Record date]
+- .small[President]
+- .small[Pages in briefing]
+- .small[Number of maps]
+- .small[How to code redactions?]
+
+]
+
+---
+## Presidential Daily Briefing
+
+.right-column[
+```{r pdb_fig2, echo=FALSE, out.width = "75%", fig.align="center"}
+knitr::include_graphics('assets/pdb_7-AUG-65.jpg')
+```
+]
+
+
+What goes into the data set?
+
+
+.left-column[
+
+.small[The *event* that happens is a certain amount of the briefing is redacted before it's made public. 
+
+How is this encoded in a variable?]
+
+]
+
+---
+
+class: small-output
+
+## Presidential Daily Briefing
+
+```{r carson, message = FALSE}
+file <- "https://raw.githubusercontent.com/UChicago-pol-methods/IntroQSS-F21/main/data/carsonPDB.csv"
+df_pdb <- read_csv(file)
+
+df_pdb
+
+```
+
+---
+
+# Continuous random variables
+
+- Our coin flip example was for a *discrete* random variable.  
+- A random variable is *continuous* if it has a continuous density function
+- Practically, we will treat RVs as discrete if they have countably many outcomes, and RVs as continuous if the number of values they can take on is only constrained by our measurement tool.
+
+---
+
+## Uniform distribution
+
+- If you take a draw from the standard uniform distribution, you are equally likely to draw any number between zero and one.
+
+- We can simulate this in R. R allows you to sample from a number of canonical distributions; to see which distributions are available, search `?Distributions`. 
+
+```{r standard_uniform}
+runif(n = 1, min = 0, max = 1)
+```
+
+---
+
+We can again sample from the distribution many times, and plot a histogram to look at the distribution of results. 
+
+```{r standard_uniform_many, fig.width = 6, fig.height=4, fig.align = 'center'}
+result_n <- runif(n, min = 0, max = 1)
+
+ggplot(tibble(result_n), aes(x = result_n)) +
+  geom_histogram(breaks = seq(0, 1, length.out = 15),  
+                 position = 'identity', color = 'white')
+```
+
+---
+
+## Probability Density Function of continuous random variables
+
+
+
+- Discrete random variables have non-zero mass on specific points, but for continuous random variables, $\textrm{P}[X = x] = 0$. Instead of mass, we refer to *density* for continuous variables. [1]
+
+
+
+.footnote[[1] Measure theory give a unified approach to measuring discrete and continuous random variables, but for simplicity, we'll keep the dichotomy of mass vs. density for discrete/continuous here. ]
+
+- The *probability density function* $f(x)$ for a continuous random variable gives the slope of the CDF at any given point. This means that we can integrate the area under the PDF to get the relative probability of being between two points. 
+
+$$
+\textrm{P}[a < X < b] = \int_a^b f(x)dx
+$$
+
+---
+
+## Illustrating the CDF of a continuous RV
+<small>
+- We start by showing the CDF of the standard uniform distribution, to illustrate how the PDF relates to the CDF. The CDF for the standard uniform distribution is:
+
+$$
+F(x) = 
+\begin{cases}
+0 & x < 0\\\
+x & 0 \le x \le 1 \\\
+1 & x > 1
+\end{cases}
+$$
+
+- Notice that the slope is 1 between 0 and 1. 
+</small>
+
+```{r uniform_plot, fig.width = 6, fig.height=4, fig.align = 'center', echo=FALSE}
+
+
+plotdata <- tibble(
+  x = c(-1, 0, 1, 2),
+  Fx = c(0, 0, 1, 1)
+)
+
+ggplot(plotdata, aes(x = x, y = Fx)) +
+  geom_line() + 
+  coord_cartesian(xlim = c(-0.5, 1.5),
+                  ylim = c(0,1)) +
+  ggtitle('CDF of Standard Uniform Distribution')
+```
+
+---
+
+## Illustrating the PDF of a continuous random variable
+
+- The PDF for the standard uniform distribution is:
+$$
+f(x) = \begin{cases}
+1 & 0 < x < 1\\\
+0 & \text{otherwise.}
+\end{cases}
+$$
+
+```{r, fig.width = 4, fig.height=4, fig.align = 'center', echo=FALSE}
+plotdata <- tibble(
+  x = c(-1, 0, 1, 1),
+  xend = c(0, 1, 1, 2),
+  fx = c(0, 1, 1, 0)
+)
+
+ggplot(plotdata, aes(x = x, y = fx)) +
+  geom_segment(aes(x = x, y = fx, xend = xend, yend = fx)) + 
+  geom_point() +
+  geom_point(aes(x = 0, y = 0), shape= 21, fill = 'white') +
+  geom_point(aes(x = 1, y = 0), shape= 21, fill = 'white') +
+  coord_cartesian(xlim = c(-0.5, 1.5),
+                  ylim = c(0,1)) +
+  ggtitle('PDF of Standard Uniform Distribution')
+```
+
+---
+
+- Notice that if we take the area under the density curve, the total area will sum to 1.  
+
+
+```{r, fig.width = 4, fig.height=4, fig.align = 'center', echo=FALSE}
+datapoly <- tibble(x = c(0, 0, 1, 1),
+                   y = c(0, 1, 1, 0))
+
+ggplot(plotdata, aes(x = x, y = fx)) +
+  geom_segment(aes(x = x, y = fx, xend = xend, yend = fx)) + 
+  geom_point() +
+  geom_point(aes(x = 0, y = 0), shape= 21, fill = 'white') +
+  geom_point(aes(x = 1, y = 0), shape= 21, fill = 'white') +
+  coord_cartesian(xlim = c(-0.5, 1.5),
+                  ylim = c(0,1)) +
+  ggtitle('PDF of Standard Uniform Distribution')
+
+```
+
+---
+
+- Notice that if we take the area under the density curve, the total area will sum to 1. Relative density gives us relative probability. 
+
+
+```{r, fig.width = 4, fig.height=4, fig.align = 'center', echo=FALSE}
+datapoly <- tibble(x = c(0, 0, 1, 1),
+                   y = c(0, 1, 1, 0))
+
+ggplot(plotdata, aes(x = x, y = fx)) +
+  geom_segment(aes(x = x, y = fx, xend = xend, yend = fx)) + 
+  geom_point() +
+  geom_point(aes(x = 0, y = 0), shape= 21, fill = 'white') +
+  geom_point(aes(x = 1, y = 0), shape= 21, fill = 'white') +
+  coord_cartesian(xlim = c(-0.5, 1.5),
+                  ylim = c(0,1)) +
+  geom_polygon(data = datapoly, aes(x = x, y = y), fill = 'blue', alpha = 0.5) + 
+  ggtitle('PDF of Standard Uniform Distribution')
+```
+
+---
+
+- If we want to get the probability $X$ is between 0 and 0.75, 
+
+$$
+\textrm{P}[0 \le x \le .75] = \int_0^.75 f(x)dx
+$$
+--
+we take the area under the density curve between 0 and 0.75 -- which is also 0.75. (Notice that we don't need to use calculus here.) 
+
+
+```{r, fig.width = 5, fig.height=5, fig.align = 'center', echo=FALSE}
+datapoly <- tibble(x = c(0, 0, 0.75, 0.75),
+                   y = c(0, 1, 1, 0))
+
+ggplot(plotdata, aes(x = x, y = fx)) +
+  geom_segment(aes(x = x, y = fx, xend = xend, yend = fx)) + 
+  geom_point() +
+  geom_point(aes(x = 0, y = 0), shape= 21, fill = 'white') +
+  geom_point(aes(x = 1, y = 0), shape= 21, fill = 'white') +
+  coord_cartesian(xlim = c(-0.5, 1.5),
+                  ylim = c(0,1)) +
+  geom_polygon(data = datapoly, aes(x = x, y = y), fill = 'blue', alpha = 0.5) + 
+  ggtitle('PDF of Standard Uniform Distribution')
+```
+
+---
+We can also read off the area under the density curve up to a point by reading the CDF. 
+```{r uniform_plot_cdf, fig.width = 6, fig.height=4, fig.align = 'center', echo=FALSE}
+
+
+plotdata <- tibble(
+  x = c(-1, 0, 1, 2),
+  Fx = c(0, 0, 1, 1)
+)
+
+ggplot(plotdata, aes(x = x, y = Fx)) +
+  geom_line() + 
+  coord_cartesian(xlim = c(-0.5, 1.5),
+                  ylim = c(0,1)) +
+  geom_vline(xintercept = 0.75, col = 'blue', lty = 'dashed') +
+  # geom_segment(aes(x = 0.75, xend = -0.5, y = 0.75, yend = 0.75), 
+  #              arrow = arrow(length = unit(0.25, "cm")), color = 'skyblue') + 
+  ggtitle('CDF of Standard Uniform Distribution')
+
+
+```
+
+
+---
+We can also read off the area under the density curve up to a point by reading the CDF. 
+```{r uniform_plot_cdf2, fig.width = 6, fig.height=4, fig.align = 'center', echo=FALSE}
+
+
+plotdata <- tibble(
+  x = c(-1, 0, 1, 2),
+  Fx = c(0, 0, 1, 1)
+)
+
+ggplot(plotdata, aes(x = x, y = Fx)) +
+  geom_line() + 
+  coord_cartesian(xlim = c(-0.5, 1.5),
+                  ylim = c(0,1)) +
+  geom_vline(xintercept = 0.75, col = 'blue', lty = 'dashed') +
+  geom_segment(aes(x = 0.75, xend = -0.5, y = 0.75, yend = 0.75), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'skyblue') + 
+  ggtitle('CDF of Standard Uniform Distribution')
+
+
+```
+
+
+---
+## Normal distribution
+<small>
+
+The Normal distribution is frequently used in probability and statistics, because it is a useful approximation to many natural phenomena. 
+
+$$
+f(x) = \frac{1}{\sqrt{\sigma 2 \pi}}\textrm{exp}\left( -\frac{(x-\mu)^2}{2\sigma^2}\right) 
+$$
+
+It is defined by two parameters, $\mu$, the center of the distribution, and $\sigma$, which defines the distribution's standard deviation, or spread. The distribution is often notated $\mathcal{N}(\mu, \sigma^2)$.
+---
+## Normal distribution
+<small>
+
+It has a bell curve shape, with more density around the middle, and less density at more extreme values. 
+
+```{r, fig.width = 6, fig.height=4, fig.align = 'center', echo=FALSE}
+result_n <- rnorm(n = 10000)
+plotdata <- tibble(
+  x = result_n,
+  Fx = pnorm(result_n),
+  fx = dnorm(result_n)
+)
+
+ggplot(plotdata, aes(x = x, y = fx)) +
+  geom_line() +
+  coord_cartesian(xlim = c(-2.5, 2.5),
+                  ylim = c(0,0.5)) +
+  geom_vline(xintercept = 0, lty = 'dashed', color = 'skyblue') +
+  geom_segment(aes(x = 0, xend = -1, y = 0.2, yend = 0.2), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'skyblue') +
+  geom_segment(aes(x = 0, xend = 1, y = 0.2, yend = 0.2), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'skyblue') +
+  geom_point(aes(x = 0, y = 0.2), color = 'skyblue') + 
+  annotate(geom="text", x = 0.5, y = .19, label = as.character(expression(sigma)), parse = TRUE, color = 'skyblue') + 
+  annotate(geom="text", x = -0.5, y = .19, label = as.character(expression(sigma)), parse = TRUE, color = 'skyblue') + 
+  annotate(geom="text", x = 0.075, y = .42, label = as.character(expression(mu)), parse = TRUE, color = 'skyblue') +
+  ggtitle('PDF of Standard Normal Distribution')
+```
+
+---
+## Normal distribution
+
+
+
+```{r, fig.width = 6, fig.height=4, fig.align = 'center', echo=FALSE}
+ggplot(plotdata, aes(x = x, y = Fx)) +
+  geom_line() +
+  coord_cartesian(xlim = c(-2.5, 2.5),
+                  ylim = c(0,1)) +
+  geom_vline(xintercept = 0, lty = 'dashed', color = 'skyblue') +
+  ggtitle('CDF of Standard Normal Distribution')
+```
+
+---
+
+# Paths and code completion in RStudio
+
+---
+
+# What is a file path? 
+
+`R` finds a file (e.g. to load a dataset) using its **file path**.
+
+For example: 
+```{r, eval = TRUE}
+getwd()
+```
+
+--
+
+Above is an example of and **absolute** path: these are like street addresses.
+
+"Where you are" is the **working directory**.
+
+---
+# What is a file path? 
+
+There are also **relative** paths: these are like street directions (and thus the meaning depends on where you are).
+
+```{r, eval = TRUE}
+dir()
+dir('../data')  # .. means "go up one level"
+```
+
+---
+
+# How to use paths in your code: our recommendation
+
+1. Open RStudio by double-clicking on the file you're working on: your working directory is the location of the file
+2. Use relative paths (relative to the file) 
+
+--
+
+Why use relative paths? To facilitate **collaboration**.
+
+---
+# In-class exercises
+
+<!-- --- -->
+<!-- ## Applications -->
+
+<!-- Applications with one of our datasets, using stat_summary() to get summaries by group (recall R4DS 3.7, statistical transformations; 5.6.4 Useful summary functions) -->
+
+
+```{r knit, echo=FALSE, message=FALSE, warning=FALSE, eval=FALSE}
+knitr::purl(input = "slides_iqss_week_2_pt2.Rmd",
+            output = "../code_etc_from_lecture/slides_iqss_week_2_pt2.R")
+```
