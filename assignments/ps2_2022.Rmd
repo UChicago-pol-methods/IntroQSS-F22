@@ -60,7 +60,7 @@ set.seed(60637)
 
 ## Question 2: More probability 
 
-Using the same random process of flipping three fair coins, code the random variable $Y$ as 1 if we get three heads, and 0 otherwise. 
+Using the same random process of flipping three biased coins, code the random variable $Y$ as 1 if we get three heads, and 0 otherwise. 
 
 **(2a) Write out the probability mass function for the random variable $Y$, i.e., $f_Y(y)$** 
 
