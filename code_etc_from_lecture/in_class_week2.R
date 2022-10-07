@@ -15,7 +15,7 @@ library(tidyverse)
 # create a data set, `dat0`, that is just the data where the column `Age group`
 # is 'All Ages'
 
-# create another data set, `dat1`, that is the date where the column `Age group`
+# create another data set, `dat1`, that is the data where the column `Age group`
 # is anything but 'All Ages'
 
 
