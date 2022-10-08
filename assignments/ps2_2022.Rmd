@@ -22,15 +22,13 @@ $$
 $$
 
 
-**(1b) The random variable $X$ that we're interested is the number of heads that we get from our random process. Write out the probability mass function for this random variable. $f_X(x)$.** *Hint: Note how many heads we get in each event from part 1a. Then look at the proportion of times we get no heads, one head, etc. These proportions are equal to the probability. List the number of heads under the $x$ column. List the associated probabilities under the $P(X=x)$ column.*
+**(1b) The random variable $X$ that we're interested is the number of heads that we get from our random process. Write out the probability mass function for this random variable. $f_X(x)$.** 
 
 
 | $x$  | $P(X = x)$ |
 |------|------------|
 |      |            |
 
-
-**(1c) Calculate the mean of this random variable. Please show your work.**
 
 
 
@@ -83,7 +81,7 @@ Using the same random process of flipping three biased coins, code the random va
 |------|------|-------------------|
 |      |      |                   |
 
-**(2b) Are $X$ and $Y$ *independent* random variables? Show why or why not.** *Hint: See definition 1.3.16 in Aronow & Miller.*
+**(2c) Are $X$ and $Y$ *independent* random variables? Show why or why not.** *Hint: See definition 1.3.16 in Aronow & Miller.*
 
 
 ## Question 3: Programming (US presidential election results, again) 
