@@ -617,6 +617,7 @@ $$E[X + Y] = E[X] + E[Y]$$
 
 Why? 
 
+--
 <br>
 
 
@@ -626,6 +627,43 @@ $$\text{Var}[X + Y] \neq \text{Var}[X] + \text{Var}[Y]$$
 Why not? 
 
 <br>
+
+
+---
+
+# Variance rule (non-linearity of variance)
+### A different proof than A&R 2.2.3
+
+$$\begin{aligned}
+\text{Var}(X+Y) &= E[(X + Y - E[X + Y])^2] \\\
+&= E[(X - E[X] + Y - E[Y])^2] \\\
+&= E[(\tilde{X} + \tilde{Y})^2] \\\
+&= E[\tilde{X}^2 + \tilde{Y}^2 + 2 \tilde{X} \tilde{Y}] \\\
+&= E[\tilde{X}^2] + E[\tilde{Y}^2] + E[2 \tilde{X} \tilde{Y}] \\\
+&= E[((X - E[X])^2] + E[(Y - E[Y])^2] + 2E[(X - E[X])(Y - E[Y])] \\\
+&= \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X, Y)
+\end{aligned}$$
+
+
+---
+
+# Back to the bigger picture
+
+We have talked about properties of random variables.
+
+These properties depend on the PMF/PDF or CDF (possibly joint).
+
+--
+
+<br>
+
+In data problems, the RV's PMF/PDF is not known; we just have a sample.
+
+The goal is to infer properties of the RV from features of the sample.
+
+--
+
+Don't forget that as you work with data!  
 
 
 
@@ -663,6 +701,7 @@ Why not?
 <!-- -- -->
 
 <!-- $E[\tilde{X}] = .4 \times 1 + .5 \times 2 = 1.4$, so  $E[(\tilde{X} - E[X])^2] = .1 \times 1.4^2 + .4 \times .4^2 + .5 \times .6^2 = .44$ -->
+
 
 
 

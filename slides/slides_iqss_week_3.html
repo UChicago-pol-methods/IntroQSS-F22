@@ -913,6 +913,7 @@ If `\(f\)` is  a *linear function* or *linear operator*, then `\(f(x + y) = f(x)
 
 Why? 
 
+--
 &lt;br&gt;
 
 
@@ -922,6 +923,43 @@ Why?
 Why not? 
 
 &lt;br&gt;
+
+
+---
+
+# Variance rule (non-linearity of variance)
+### A different proof than A&amp;R 2.2.3
+
+`$$\begin{aligned}
+\text{Var}(X+Y) &amp;= E[(X + Y - E[X + Y])^2] \\\
+&amp;= E[(X - E[X] + Y - E[Y])^2] \\\
+&amp;= E[(\tilde{X} + \tilde{Y})^2] \\\
+&amp;= E[\tilde{X}^2 + \tilde{Y}^2 + 2 \tilde{X} \tilde{Y}] \\\
+&amp;= E[\tilde{X}^2] + E[\tilde{Y}^2] + E[2 \tilde{X} \tilde{Y}] \\\
+&amp;= E[((X - E[X])^2] + E[(Y - E[Y])^2] + 2E[(X - E[X])(Y - E[Y])] \\\
+&amp;= \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X, Y)
+\end{aligned}$$`
+
+
+---
+
+# Back to the bigger picture
+
+We have talked about properties of random variables.
+
+These properties depend on the PMF/PDF or CDF (possibly joint).
+
+--
+
+&lt;br&gt;
+
+In data problems, the RV&#39;s PMF/PDF is not known; we just have a sample.
+
+The goal is to infer properties of the RV from features of the sample.
+
+--
+
+Don&#39;t forget that as you work with data!  
 
 
 
@@ -959,6 +997,7 @@ Why not?
 &lt;!-- -- --&gt;
 
 &lt;!-- `\(E[\tilde{X}] = .4 \times 1 + .5 \times 2 = 1.4\)`, so  `\(E[(\tilde{X} - E[X])^2] = .1 \times 1.4^2 + .4 \times .4^2 + .5 \times .6^2 = .44\)` --&gt;
+
 
 
 
