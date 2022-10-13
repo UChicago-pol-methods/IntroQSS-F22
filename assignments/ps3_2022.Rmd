@@ -1,0 +1,155 @@
+---
+title: "Problem set 3"
+author: "Your name here"
+date: "Due 10/18/2021 at 5pm"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+*\textsc{Note1}: Start with the file `ps3_2022.Rmd` (available from the github repository at https://github.com/UChicago-pol-methods/IntroQSS-F22/tree/main/assignments). Modify that file to include your answers. Make sure you can "knit" the file (e.g. in RStudio by clicking on the `Knit` button). Submit both the Rmd file and the knitted PDF via Canvas*
+
+*\textsc{Note2}: You will need to have a working LaTeX installation to compile your code.*
+
+(The objective with these questions is to illustrate the theorems with examples. We can also do some explicating of a proof.)  
+
+# Question 1: Expected value 
+
+**Consider the random variable $X$ characterized by the following PMF:**
+
+| $x$  | $P(X = x)$ |
+|:------:|:------------:|
+|   0   |     .3     |
+|   1   |     .3     |
+|   4   |     .4     |
+
+**1.1 Compute $E[X]$. Show your work.**
+
+
+  
+**1.2 Write a function to compute the expectation of any discrete random variable. The arguments to your function should include the values the random variable can take on (`x`) and the probability it takes on each value (`probs`). Use your function to confirm your answer from question 1.1.**
+
+```{r}
+# your work here
+```
+
+  
+**1.3 Compute the MSE ($E[(X - c)^2]$) for $c = 1$ and $c = 2$. Show your work.**
+
+
+
+**1.4 Write a function to compute the MSE for any discrete random variable at a value `c`. The arguments to your function should include the values the random variable can take on (`x`), the probability it takes on each value (`probs`), and the value `c` being considered. Use your function to confirm your answers from 1.3.**   
+
+```{r}
+# your work here
+```
+
+**1.5 Make a plot showing the MSE for values of $c \in \{1.0, 1.1, 1.2, \ldots, 3.0\}$. Add a vertical red line (see `geom_vline()`) at $E[X]$.**
+
+*Hint: You should be able to do this in a tedious way using only the above and what you have learned about `ggplot`. To make it more efficient code-wise, you may want to use the `sapply` function or the `map_dbl` function.*
+
+```{r}
+# your work here
+```
+
+
+
+# Question 2: Variance
+
+**Consider the random variable $X$ characterized by the following PMF:**
+
+| $x$  | $P(X = x)$ |
+|:------:|:------------:|
+|   -1   |    .6     |
+|   0   |     .1     |
+|   2   |     .3     |
+
+**2.1 Show that the variance of $X$ is the same whether we compute it by the formula in Definition 2.1.12 or the Alternative Formula in Theorem 2.1.13. (We want the two variance computations, not the proof.)**
+
+**2.2 Show that the variance is the same if you add a constant to $X$. (We want the two variance computations, not the proof of the first part of Theorem 2.1.14.)**
+
+**2.3 Show that the variance is multiplied by $a^2$ if $X$ is multiplied by $a$. (We want the two variance computations, not the proof of the second part of Theorem 2.1.14.)**
+
+
+
+# Question 3: CDF of a discrete random variable
+
+**Consider the discrete random variable characterized by the following PMF:** 
+
+| $x$   | $P(X = x)$ |
+|-------|:----------:|
+|   2   |     .1     |
+|   3   |     .2     |
+|   4   |     .7     |
+
+**3.1 What is the cumulative distribution function $F$ evaluated at 2.5 (i.e. $F(2.5)$)?**
+
+**3.2 Plot the cumulative distribution function $F(x)$ for $x \in [1, 5]$. It should look like Figure 1.2.1 in Aronow & Miller. For simplicity you may leave out the open and closed circles and connect the horizontal segments with vertical lines.**
+
+*Hint: The code below may help you get started.*
+
+```{r, eval = F}
+# the tibble defines the corners of the step function
+tibble(x = c(0, 1, 1, 2, 2, 3),
+       y = c(0, 0, 1, 1, 2, 2)) |> 
+  ggplot(aes(x = x, y = y)) +
+  geom_path()
+```
+
+```{r}
+# your work here
+```
+
+
+**3.3 Draw a sample of size 100 from the PMF above. Plot the empirical CDF from this sample using the same approach you used above.**
+
+```{r}
+# your work here
+```
+
+
+**3.4 Combine the two CDFs in the same plot, with labels to identify the true CDF and the empirical CDF from your sample.**
+
+```{r}
+# your work here
+```
+
+
+
+# Question 4: Covariance
+
+
+**Consider the following joint PMF of two random variables, $X$ and $Y$:**
+
+| $x$  |   $y$ | $P(X = x, Y = y)$ |
+|:------:|:-------:|:-----:|
+|   0   |     0     |    1/4  |
+|   1   |     0     |    1/4 |
+|   1   |     1     |   1/2    |
+
+**4.1 What is the marginal PMF of $X$? What is the marginal PMF of $Y$?**
+
+**Compute the covariance of $X$ and $Y$ in three ways:**
+
+**4.2 By hand, using the formula $E[XY] - E[X]E[Y]$. (Show work.)**
+
+```{r}
+# your work here
+```
+
+**4.3 By hand, using the formula $E[(X - E[X])(Y - E[Y])]$. (Show work.)**
+```{r}
+# your work here
+```
+
+**4.4 Using `R`, by creating a population with the above frequencies and using the `cov()` function.**
+
+```{r}
+# your work here
+```
+
+**4.5 (Bonus) You should find that your answer to 4.4 is not exactly the same as the other two. Why is this? Show how to make your answer to 4.4 the same as the others.**  
+
