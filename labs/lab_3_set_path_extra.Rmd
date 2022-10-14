@@ -1,0 +1,44 @@
+---
+title: "Extra notes"
+author: "Oscar"
+date: '2022-10-13'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Extra notes
+
++ Do not use "#" if you want to show your code! It is used when you want to add a comment.
++ r4ds provides good material about R / RMarkdown
++ Remember: two ways to set your path
+
+```{r}
+# Recommended 
+file <- "https://raw.githubusercontent.com/UChicago-pol-methods/IntroQSS-F22/main"
+df_pdb <- read_csv(file.path(file, '/data/carsonPDB.csv'))
+df_pdb
+```
+
+```{r}
+# Optional
+setwd("C:/Users/cuadr/OneDrive/Escritorio/UCHICAGO/7. Intro QMSC 2022/Lab/2022")
+setwd('../3')
+
+score <- read_excel("score_2.xlsx")
+score
+```
+
+
+
+
+
+
+
+
+
+
