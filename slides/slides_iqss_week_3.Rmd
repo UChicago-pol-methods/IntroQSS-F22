@@ -18,6 +18,8 @@ knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning =
 ```
 
 
+<!-- TODO based on 2022 version: add something comparing MSE to mean deviation and MAD --> 
+
 # Big picture/motivation
 
 For now, we are talking about probability and random variables.
@@ -380,7 +382,7 @@ $$E[XY] = \sum_x \sum_y xy f(x, y)$$
 
 $$\begin{aligned}
 E[XY] &= \sum_x \sum_y xy f(x, y) \\
-&= 0 \times 1/10 + 0 \times 1/5 + 0 \times 3/10 + 1 \times 1/2 \\
+&= 0 \times 1/10 + 0 \times 1/5 + 0 \times 1/5 + 1 \times 1/2 \\
  &= 1/2 
 \end{aligned}$$
 
