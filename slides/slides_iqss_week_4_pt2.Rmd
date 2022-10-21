@@ -1,0 +1,788 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 4. Identification and causal estimands, pt. 2"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+      countIncrementalSlides: no
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggdag)
+set.seed(60637)
+```
+
+```{css, echo=FALSE}
+.small-output .remark-code{
+font-size: small;
+}
+
+.white { color: white; }
+
+# .show-only-last-code-result pre + pre:not(:last-of-type) code[class="remark-code"] {
+#     display: none;
+# }
+```
+
+
+## Another view: DAGs 
+
+Let each variable be a **node** in a graph, and draw an arrow from a node $A$ to a node $B$ if and only if $A$ affects $B$.
+
+--
+
+Then our toy example might be represented via a **Directed Acyclic Graph (DAG)** like this:
+
+```{r, fig.height=3, fig.width = 4, fig.align = "center", echo = F, message = F, out.width = "50%"}
+library(ggdag)
+coords <- tibble::tribble(
+  ~name, ~x,  ~y,
+  "D", 0,   0,
+  "X", -.25,   .5,
+  "Y",  1,   0
+)
+
+dagify(Y ~ X + D,
+       D ~ X,
+       coords = coords)|> 
+  tidy_dagitty() |> 
+  ggdag() + 
+  theme_void()
+
+```
+
+
+$X$ is a **confounder**. What might be an example of a confounder?
+
+--
+
+The association (e.g. correlation) between $D$ and $Y$ reflects both the direct effect of $D$ on $Y$ and the *backdoor path* $D \leftarrow X \rightarrow Y$. 
+
+???
+
+$X$ could be the type, or something like ability or prior experience in the subject matter.
+
+Vanderweele and Robins (2007): "A DAG is composed of variables (nodes) and arrows between nodes (directed edges) such that the graph is acyclic—that is, it is not possible to start at any node, follow the directed edges in the arrowhead direction, and end up back at the same node. A causal DAG is one in which the arrows can be interpreted as causal relations and in which all common causes of any pair of variables on the graph are also included on the graph."
+
+---
+
+
+Earlier, we considered *causal effects*, comparing individual response under treatment $D_i= 1$ vs. $D_i  = 0$.
+
+--
+
+$$\tau_i = \mathrm{ITE}_i = Y_i(1) - Y_i(0)$$
+--
+The fundamental problem of causal inference says we never see $\tau_i$. 
+
+--
+
+So instead, we might compare responses across people. 
+
+---
+
+## Average Treatment Effect (Average causal effect)
+
+--
+
+- Define a population of interest. 
+
+--
+- Define treatment comparison. 
+
+--
+- Define outcomes. 
+
+--
+
+Target: ATE 
+
+$$
+\begin{align}
+\textrm{E}[\tau_i] & = \textrm{E}[Y_i(1) - Y_i(0)]\\
+& = \textrm{E}[Y_i(1)] - \textrm{E}[Y_i(0)]
+\end{align}
+$$
+
+???
+Linearity of expectations
+
+
+---
+## Estimand
+
+The *estimand* is the parameter of interest—it is the quantity that we would like to know about.
+
+--
+
+For example, when we care about causal effects, the estimand may be:
+
+- the Average Treatment Effect (ATE)
+- the Average effect of Treatment on the Treated (ATT)
+- the Average effect of Treatment on the Control (ATC)
+
+--
+
+Why might these three quantities differ?
+
+--
+
+*Notational aside: we often denote the estimand with the greek letter $\theta$. Specific estimands may have conventional notations, such as $\tau$ for the ATE, $\mu$ for the mean, or $\sigma$ for the standard deviation.*
+
+
+---
+
+Example adapted from: 
+
+Chattopadhyay, R., & Duflo, E. (2004). Women as policy makers: Evidence from a randomized policy experiment in India. *Econometrica*, 72(5), 1409-1443.
+
+---
+
+Gerber Green example:
+
+--
+- Population: 7 villages
+
+--
+- Treatment: $D= 1$ if female-headed council, $D=0$ if male
+
+--
+- Outcome: Budget allocation to sanitation
+
+--
+
+|           | $Y_i(0)$ | $Y_i(1)$ | $\tau_i$ |
+|-----------|:--------:|:--------:|:--------:|
+| Village 1 |    10    |    15    |     5    |
+| Village 2 |    15    |     15   |     0    |
+| Village 3 |    20    |     30   |     10    |
+| Village 4 |    20    |     15   |     -5   |
+| Village 5 |    10    |     30   |     10   |
+| Village 6 |    15    |     15   |     0    |
+| Village 7 |    15    |    30    |     15   |
+| .white[**Average**]| .white[**15**] |   .white[**20**]  |  .white[**5**]   |
+
+
+---
+
+Gerber Green example:F
+
+
+- Population: 7 villages
+- Treatment: $D= 1$ if female-headed council, $D=0$ if male
+- Outcome: Budget allocation to sanitation
+
+
+|           | $Y_i(0)$ | $Y_i(1)$ | $\tau_i$ |
+|-----------|:--------:|:--------:|:--------:|
+| Village 1 |    10    |    15    |     5    |
+| Village 2 |    15    |     15   |     0    |
+| Village 3 |    20    |     30   |     10    |
+| Village 4 |    20    |     15   |     -5   |
+| Village 5 |    10    |     30   |     10   |
+| Village 6 |    15    |     15   |     0    |
+| Village 7 |    15    |    30    |     15   |
+| **Average**| **15**     |   **20**  |      **5**    |
+
+--
+ATE:
+$$
+\begin{align}
+\textrm{E}[\tau_i] & = 5
+\end{align}
+$$
+
+---
+
+Gerber Green example:
+
+
+What we actually see:
+
+
+|           | $Y_i(0)$ | $Y_i(1)$ | $D_i$    | $Y_i$    | $\tau_i$ |
+|-----------|:--------:|:--------:|:--------:|:--------:|:--------:|
+| Village 1 |     ?    |    15    |     1    |     15    |     ?    |
+| Village 2 |    15    |     ?    |     0    |     15    |     ?    |
+| Village 3 |    20    |     ?    |     0    |     20    |     ?    |
+| Village 4 |    20    |     ?    |     0    |     20    |     ?    |
+| Village 5 |    10    |     ?    |     0    |     10    |     ?    |
+| Village 6 |    15    |     ?    |     0    |     15    |     ?    |
+| Village 7 |     ?    |    30    |     1    |     30    |     ?    |
+| .white[**Average**]| .white[**15**] |   .white[**20**]  |  .white[**5**]   |
+
+
+---
+
+Gerber Green example:
+
+
+What we actually see:
+
+|           | $Y_i(0)$ | $Y_i(1)$ | $D_i$    | $Y_i$    | $\tau_i$ |
+|-----------|:--------:|:--------:|:--------:|:--------:|:--------:|
+| Village 1 |     ?    |    15    |     1    |     15    |     ?    |
+| Village 2 |    15    |     ?    |     0    |     15    |     ?    |
+| Village 3 |    20    |     ?    |     0    |     20    |     ?    |
+| Village 4 |    20    |     ?    |     0    |     20    |     ?    |
+| Village 5 |    10    |     ?    |     0    |     10    |     ?    |
+| Village 6 |    15    |     ?    |     0    |     15    |     ?    |
+| Village 7 |     ?    |    30    |     1    |     30    |     ?    |
+|**Average**| **16**   |  **22.5**|          |           |  **?**   |
+
+--
+
+To produce an estimate of the ATE, we might compare people who received treatment $1$ to people who received treatment $0$. 
+
+---
+## Estimator
+
+An *estimator* is a function of the data we observe; it is a statistic that gives us an informed guess about the value of the estimand. 
+--
+Below, the estimator is the function $g(\cdot)$. 
+
+
+$$
+g(X_1, \dots, X_n)
+$$
+--
+We can also think of it as a recipe. Given some data, $X_1, \dots, X_n$, follow the instructions $g(\cdot)$ to produce an estimate. 
+
+--
+
+*Note:* we'll discuss *statistics* more generally in the future, but statistics broadly encompass any function of the data. We reserve the term estimator for functions that we use to approximate an estimand.  
+
+---
+
+## Estimate
+
+An *estimate* is what we calculate from our estimator with a specific set of data. Below, the estimate is the quantity $\hat{\theta}_n$. 
+
+$$
+\hat{\theta}_n = g(X_1, \dots, X_n)
+$$
+
+---
+
+```{r, echo = FALSE, out.width = "72%", fig.align='center'}
+knitr::include_graphics('assets/eee.jpg')
+```
+(image cred: @simongrund89)
+
+---
+
+
+## Difference in Means
+
+
+Proposed estimator for $\textrm{E}[\tau_i]$: compare people who received treatment $1$ to people who received treatment $0$. 
+
+--
+This is the difference in means estimator:
+
+$$
+\hat\tau_{DM} = \frac{\sum_i^n Y_i D_i}{\sum_i^n D_i} - \frac{\sum_i^n Y_i (1-D_i)}{\sum_i^n (1-D_i)}
+$$
+
+---
+
+The problem: people who get treatment $1$ might look different than people who get treatment $0$.  
+
+--
+
+```{r, fig.height=3, fig.width = 4, fig.align = "center", echo = FALSE, message = FALSE, out.width = "50%"}
+library(ggdag)
+coords <- tibble::tribble(
+  ~name, ~x,  ~y,
+  "D", 0,   0,
+  "X", -.25,   .5,
+  "Y",  1,   0
+)
+
+dagify(Y ~ X + D,
+       D ~ X,
+       coords = coords)|> 
+  tidy_dagitty() |> 
+  ggdag() + 
+  theme_void()
+
+```
+
+
+$X$ is a **confounder**.
+
+---
+
+
+## Bias of an estimator
+
+The bias of an estimator is the expected difference between the estimate and the true value of the estimand. 
+
+$$
+\textrm{bias}(\hat{\theta}_n) = \textrm{E}[\hat\theta_n] - \theta
+$$
+
+--
+
+An estimator is *unbiased* if
+
+$$\textrm{E}[\hat\theta_n] = \theta$$
+
+--
+
+What is this expectation taken over in the experimental setting? What is random?
+
+---
+
+The estimator is a function of the data, and so whether or not the estimator is biased for our estimand *also depends on the data generating process we're putting into our $g(\cdot)$ function.*
+
+---
+# Randomization 
+
+When we aren't in control of assigning treatment, we say the data is *observational.*
+
+--
+
+In *randomized experiments*, we are in a special setting where get specific input on what data we observe. 
+
+--
+
+
+Let $Y_i = Y_i(1) \times D_i + Y_i(0) \times (1 - D_i)$
+
+--
+
+**Random assignment:**
+
+- $(Y_i(1), Y_i(0)) \perp\!\!\!\!\perp  D_i$ (independence of potential outcomes and treatment)
+- $0 < \textrm{P}[D_i = 1] <1$ (positivity)
+
+
+---
+Note that the notation $Y_i = Y_i(1) \times D_i + Y_i(0) \times (1 - D_i)$ also 
+imposes an assumption about stability. 
+
+SUTVA:
+
+**Stable Unit Treatment Value Assumption**
+--
+
+Implies:
+
+- no unobserved multiple versions of the treatment
+- no "interference between units"
+
+---
+
+Target estimand: ATE
+
+$$
+\textrm{E}[\tau_i] = \textrm{E}[Y_i(1)] - \textrm{E}[Y_i(0)]
+$$
+
+
+Under random assignment where everyone has the same probability of being assigned treatment,
+
+$$
+\begin{align}
+\textrm{E}[Y_i(1)|D_i = 1] &= \textrm{E}[Y_i(1)|D_i = 0]  \\\\
+& = \textrm{E}[Y_i(1)]
+\end{align}
+$$
+
+--
+And,
+$$
+\begin{align}
+\textrm{E}[Y_i(0)|D_i = 0] &= \textrm{E}[Y_i(0)|D_i = 1]
+\end{align}
+$$
+
+
+---
+
+
+Target estimand: ATE
+
+$$
+\textrm{E}[\tau_i] = \textrm{E}[Y_i(1)] - \textrm{E}[Y_i(0)]
+$$
+
+
+Under random assignment where everyone has the same probability of being assigned treatment,
+
+$$
+\begin{align}
+\textrm{E}[Y_i(1)|D_i = 1] &= \textrm{E}[Y_i(1)|D_i = 0]  \\\\
+& = \textrm{E}[Y_i(1)]
+\end{align}
+$$
+
+And,
+$$
+\begin{align}
+\textrm{E}[Y_i(0)|D_i = 0] &= \textrm{E}[Y_i(0)|D_i = 1] \\\\
+& = \textrm{E}[Y_i(0)]
+\end{align}
+$$
+
+
+---
+
+What this means: distribution of potential outcomes under treatment and control is exactly the same. 
+
+$$
+\textrm{E}[Y_i(0)] = \textrm{E}[Y_i | D_i = 0]
+$$
+and
+
+$$
+\textrm{E}[Y_i(1)] = \textrm{E}[Y_i | D_i = 1]
+$$
+
+---
+
+In DAG notation, 
+
+```{r, fig.height=3, fig.width = 4, fig.align = "center", echo = FALSE, message = FALSE, out.width = "50%"}
+coords <- tribble(
+  ~name, ~x,  ~y,
+  "D", 0,   0,
+  "X", -.25,   .5,
+  "Y",  1,   0
+)
+
+dagify(Y ~ X + D,
+       coords = coords)|>
+  tidy_dagitty() |>
+  ggdag() +
+  theme_void()
+```
+
+--
+
+What's different?
+
+
+---
+
+
+The difference-in-means estimator is unbiased for the average treatment effect estimand, when treatment assignment is random. 
+
+--
+
+$$
+\begin{align}
+\hat\tau_{DM} & = \frac{\sum_i^n Y_i D_i}{\sum_i^n D_i} - \frac{\sum_i^n Y_i (1-D_i)}{\sum_i^n (1-D_i)}
+\end{align}
+$$
+
+
+---
+
+Plugging in from our example above, 
+
+|           | $Y_i(0)$ | $Y_i(1)$ | $D_i$    | $Y_i$    | $\tau_i$ |
+|-----------|:--------:|:--------:|:--------:|:--------:|:--------:|
+| Village 1 |     ?    |    15    |     1    |     15    |     ?    |
+| Village 2 |    15    |     ?    |     0    |     15    |     ?    |
+| Village 3 |    20    |     ?    |     0    |     20    |     ?    |
+| Village 4 |    20    |     ?    |     0    |     20    |     ?    |
+| Village 5 |    10    |     ?    |     0    |     10    |     ?    |
+| Village 6 |    15    |     ?    |     0    |     15    |     ?    |
+| Village 7 |     ?    |    30    |     1    |     30    |     ?    |
+|**Average**| **16**   |  **22.5**|          |           |  .white[**6.5**]   |
+
+--
+
+$$
+\begin{align}
+\hat\tau_{DM} & = \frac{\sum_i^n Y_i D_i}{\sum_i^n D_i} - \frac{\sum_i^n Y_i (1-D_i)}{\sum_i^n (1-D_i)}
+\end{align}
+$$
+--
+
+$$
+\begin{align}
+& = \frac{15 +30}{2} - \frac{15 + 20 + 20 + 10 + 15}{5}\\
+& = 6.5
+\end{align}
+$$
+
+
+
+---
+
+It's important to note that while in our table, we only see individual units under either treatment or control, *every unit COULD have received treatment or control.*
+
+---
+
+Our estimate, 6.5, is different from the true value of the estimand, 5. 
+
+Is the estimate biased?
+
+
+---
+### In-class exercise. 
+
+
+Create a tibble data set to represent the villages, treatments, and the **observed** potential outcomes from our example. Fill in NAs where data is missing. Create a variable `Y`, that is $Y_i(0)$ when $D_i == 0$ and $Y_i(1)$ when $D_i == 1$. 
+
+$$
+Y_i = \begin{cases}
+Y_i(0) & X_i = 0 \\\
+Y_i(1) & X_i = 1 \\\
+\end{cases}
+$$
+
+--
+
+
+|           | $Y_i(0)$ | $Y_i(1)$ | $D_i$    | $Y_i$    |
+|-----------|:--------:|:--------:|:--------:|:--------:|
+| Village 1 |     ?    |    15    |     1    |     ?    |
+| Village 2 |    15    |     ?    |     0    |     ?    |
+| Village 3 |    20    |     ?    |     0    |     ?    |
+| Village 4 |    20    |     ?    |     0    |     ?    |
+| Village 5 |    10    |     ?    |     0    |     ?    |
+| Village 6 |    15    |     ?    |     0    |     ?    |
+| Village 7 |     ?    |    30    |     1    |     ?    |
+
+
+---
+```{r}
+df_villages <- tibble(
+  Y0 = c(NA, 15, 20, 20, 10, 15,NA),
+  Y1 = c(15, NA,NA,NA,NA,NA, 30),
+  D = c(1, 0,0,0,0,0,1)
+)
+```
+
+--
+```{r}
+df_villages <- df_villages |> 
+  mutate(Y = case_when(D == 1 ~ Y1, 
+                       TRUE ~ Y0))
+
+df_villages
+```
+
+
+---
+
+class: small-output
+
+## Analyzing an experiment
+
+
+Considering some real data, we'll look at
+
+Butler, D. M., & Broockman, D. E. (2011). *Do politicians racially discriminate against constituents? A field experiment on state legislators.* AJPS. 
+
+--
+
+Data is available at the Yale ISPS data archive: [isps.yale.edu/research/data](https://isps.yale.edu/research/data)
+
+--
+
+```{r, message=FALSE}
+file <- '../data/Butler_Broockman_AJPS_2011_public.csv'
+df <- read_csv(file)
+```
+
+
+```{r}
+head(df)
+```
+
+---
+
+
+### Description
+
+> Emails are sent to state legislators. We signaled the race of the email
+sender by randomizing whether the email was signed by and sent from an
+email account with the name Jake Mueller or the name DeShawn Jackson.
+
+
+--
+
+Population is state legislators. 
+
+--
+
+Treatment is 1 if the sender was DeShawn Jackson, and 0 if Jake Mueller. 
+
+```{r}
+table(df$treat_deshawn)
+
+# or
+df |> 
+  group_by(treat_deshawn) |> 
+  summarize(n())
+```
+
+---
+
+The primary outcome is whether legislators replied at all. 
+
+```{r}
+table(df$reply_atall)
+```
+
+---
+
+To get the difference-in-means estimate of the ATE, 
+
+```{r}
+
+df <- df |> 
+  mutate(Y1 = case_when(treat_deshawn == 1 ~ reply_atall,
+                        TRUE ~ NA_real_),
+         Y0 = case_when(treat_deshawn == 0 ~ reply_atall,
+                        TRUE ~ NA_real_))
+
+head(df[, c('Y0', 'Y1')])
+```
+
+---
+
+
+```{r}
+df |> 
+  summarize(mean(Y1, na.rm = TRUE) - mean(Y0, na.rm = TRUE))
+# Note that I'm just taking *observed* means here; unobserved 
+# values are counted as NAs. If we had the full potential 
+# outcomes table, we would have to account for which Y0s and 
+# Y1s we are using based on whether we want the true 
+# estimand value or an estimate under random assignment. 
+```
+
+
+Legislators were 1.78 percentage points less likely to reply to an email if the sender was identified as DeShawn Jackson as compared to Jake Mueller. 
+
+---
+class: small-output
+
+### `estimatr`
+
+The `estimatr` package produces a difference-in-means estimate for us; the standard errors give us information about how precise we think the point estimate is—we'll come back to these later. 
+
+
+--
+
+```{r}
+library(estimatr)
+
+difference_in_means(reply_atall ~ treat_deshawn, data = df)
+```
+--
+The point estimate is *identical* to just taking simple means of the two groups. 
+
+---
+<!-- ### Conditional expectation -->
+
+
+<!-- Conditional expectation of $Y$ given $X = x$: -->
+
+<!-- $$ -->
+<!-- \textrm{E}[Y | X = x] = \sum\_y y f\_{Y|X}(y|x), \ \forall x \in \textrm{Supp}[X]. -->
+<!-- $$ -->
+
+<!-- -- -->
+
+<!-- - Like regular expectation, conditional expectation is an operator -->
+<!-- -- -->
+
+<!-- - With random assignment, we can also get unbiased estimates of conditional treatment effects using the difference in means estimator.  -->
+
+<!-- --- -->
+
+<!-- class: small-output -->
+
+<!-- ### Conditional treatment effects -->
+
+<!-- Here, we can condition on whether the legislator receiving the email was a Democrat vs. Republican.  -->
+
+<!-- $$\textrm{E}[Y_i(1) - Y_i(0)|\textrm{party} = \text{Dem}]$$ -->
+
+<!-- -- -->
+
+<!-- $$\textrm{E}[Y_i(1) - Y_i(0)|\textrm{party} = \text{Dem}]$$ -->
+
+
+<!-- ```{r} -->
+<!-- Y1D <- filter(df, treat_deshawn == 1, leg_party == 'D') |>  -->
+<!--   pull(reply_atall) -->
+<!-- Y0D <- filter(df, treat_deshawn == 0, leg_party == 'D') |>  -->
+<!--   pull(reply_atall) -->
+
+<!-- mean(Y1D) - mean(Y0D) -->
+<!-- ``` -->
+
+<!-- -- -->
+
+<!-- $$\textrm{E}[Y_i(1) - Y_i(0)|\textrm{party} = \text{Rep}]$$ -->
+
+<!-- ```{r} -->
+<!-- Y1R <- filter(df, treat_deshawn == 1, leg_party == 'R') |>  -->
+<!--   pull(reply_atall) -->
+<!-- Y0R <- filter(df, treat_deshawn == 0, leg_party == 'R') |>  -->
+<!--   pull(reply_atall) -->
+
+<!-- mean(Y1R) - mean(Y0R) -->
+<!-- ``` -->
+
+<!-- -- -->
+<!-- Democrats are *more* likely to respond to an email if the sender was identified as DeShawn Jackson as compared to Jake Mueller; whereas Republicans were *less* likely to respond.  -->
+
+
+<!-- --- -->
+
+
+## Limitations of experiments
+
+--
+
+- What *population* are you substantively interested in? What group are you actually able to manipulate treatments for? Can you generalize from one to another?
+
+--
+- Which *treatments* can you realistically/ethically manipulate? Are these relevant to the counterfactuals in the world that you're actually interested in?
+
+--
+- What *outcomes* can you measure in your study group? Are these outcomes relevant to the real world behavior or events that you care about?
+
+--
+- Does your study design match your estimand of interest?
+
+--
+- Does your study have *internal validity*? Does your study have *external validity*?
+
+---
+
+## Is causal inference a lost cause outside of experiments?
+
+--
+- When we aren't able to manipulate treatment, we depend on other *identifying assumptions.*
+
+--
+- Natural experiments (lots of work from Angrist, Card, Krueger)
+
+--
+- Exposure to treatment is *as-if random*, controlling for other measured variables. 
+
+--
+- Identification strategies + estimating procedures: Instrumental variables, difference-in-differences, regression discontinuity
+
+
+
+```{r knit, echo=FALSE, message=FALSE, warning=FALSE, eval=FALSE}
+knitr::purl(input = "slides_iqss_week_4_pt2.Rmd",
+            output = "../code_etc_from_lecture/slides_iqss_week_4_pt2.R")
+```

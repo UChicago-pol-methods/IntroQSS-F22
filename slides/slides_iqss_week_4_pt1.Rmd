@@ -1,0 +1,528 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 4. Identification and causal estimands, pt. 1"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+      countIncrementalSlides: no
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+set.seed(60637)
+```
+
+```{css, echo=FALSE}
+.small-output .remark-code{
+font-size: x-small;
+}
+
+.red {
+color: red;
+}
+
+.blue {
+color: blue;
+}
+
+# .show-only-last-code-result pre  +  pre:not(:last-of-type) code[class="remark-code"] {
+#     display: none;
+# }
+```
+
+- For populations, 
+
+  +  we've talked about some ways to describe them (PMF/CDF of marginal, joint, conditional distributions)
+  +  and some ways to summarize them (mean, variance, covariance, correlation)
+
+--
+
+- Next week, will talk about some corresponding ways to summarize data sets (sample mean, sample variance, etc.)
+
+--
+[Estimation!]
+
+---
+
+But how are these things related?
+
+---
+
+## Identification
+
+--
+
+- *Parameters* describe features of distributions
+
+--
+
+- We call a parameter of a distribution *identifiable* if in the case that we had **infinite data**, we could approximate the true parameter value to arbitrary precision. 
+
+--
+
+  - e.g., if you have **infinite data** randomly sampled from a distribution, by taking the empirical mean, you get the mean of that distribution with arbitrary precision. 
+
+--
+
+  - in the same scenario, by taking the empirical cdf, you can fully describe the entire distribution with arbitrary precision. 
+
+--
+
+- If we're dealing with a **finite population**, we can think about identifying a target quantity about that population, as if we were to repeat the procedure through we observed data about that population, averaging *across repetitions*, we could approximate the true quantity to arbitrary precision. 
+
+---
+
+For example, suppose we are interested in the components of $Y$, the income of the members of University of Chicago's board of trustees. Income is composed of two elements, annual salary, $X_1$, and annual returns on investments, $X_2$. 
+
+
+
+$$
+Y\_i = X\_{[i]1}  +  X\_{[i]2}
+$$
+
+--
+
+We know everyone's income. We only know breakdown of salary and returns on investments for board members with an annual salary over $500,000. 
+
+--
+
+
+|          | $Y$    | $X_1$     | $X_2$   |
+|----------|:----- :|:------- -:|:-------:|
+| Person 1 |  650   |    550    |     100 |
+| Person 2 |  800   |    600    |     200 |
+| Person 3 |  500   |    ?      |     ?   |
+| Person 4 |  1,600 |  1,300    |     300 |
+| Person 5 |  650   |    ?      |     ?   |
+| Person 6 |  900   |    ?      |     ?   |
+| Person 7 |  1,200 |    700    |  500    |
+
+In $1,000s
+
+---
+Can we identify board member average income?
+$$
+\sum\_{i = 1}^7 Y\_i
+$$
+
+
+|          | $Y$    | $X_1$     | $X_2$   |
+|----------|:----- :|:------- -:|:-------:|
+| Person 1 |  650   |    550    |     100 |
+| Person 2 |  800   |    600    |     200 |
+| Person 3 |  500   |    ?      |     ?   |
+| Person 4 |  1,600 |  1,300    |     300 |
+| Person 5 |  650   |    ?      |     ?   |
+| Person 6 |  900   |    ?      |     ?   |
+| Person 7 |  1,200 |    700    |  500    |
+
+In $1,000s
+
+---
+
+Can we identify board member average salary?
+$$
+\sum\_{i = 1}^7 X\_{[1]i}
+$$
+
+
+|          | $Y$    | $X_1$     | $X_2$   |
+|----------|:----- :|:------- -:|:-------:|
+| Person 1 |  650   |    550    |     100 |
+| Person 2 |  800   |    600    |     200 |
+| Person 3 |  500   |    ?      |     ?   |
+| Person 4 |  1,600 |  1,300    |     300 |
+| Person 5 |  650   |    ?      |     ?   |
+| Person 6 |  900   |    ?      |     ?   |
+| Person 7 |  1,200 |    700    |  500    |
+
+In $1,000s
+
+---
+
+
+```{r}
+uoc_board <- tibble(
+  Y = c(650, 800, 500, 1600, 650, 900, 1200),
+  X1 = c(550, 600, NA, 1300, NA, NA, 700),
+  X2 = c(100, 200, NA, 300, NA, NA, 500))
+
+
+uoc_board
+```
+
+
+---
+```{r}
+uoc_board |> 
+  summarize(
+    mean(Y),
+    mean(X1),
+    mean(X2)
+  )
+```
+
+
+---
+
+Can we put bounds on board member average salary?
+$$
+\sum\_{i = 1}^7 X\_{[1]i}
+$$
+
+
+|          | $Y$    | $X_1$     | $X_2$   |
+|----------|:----- :|:------- -:|:-------:|
+| Person 1 |  650   |    550    |     100 |
+| Person 2 |  800   |    600    |     200 |
+| Person 3 |  500   |    ?      |     ?   |
+| Person 4 |  1,600 |  1,300    |     300 |
+| Person 5 |  650   |    ?      |     ?   |
+| Person 6 |  900   |    ?      |     ?   |
+| Person 7 |  1,200 |    700    |  500    |
+
+In $1,000s
+
+---
+
+Can we put bounds on board member average salary?
+$$
+\sum\_{i = 1}^7 X\_{[1]i}
+$$
+
+
+|          | $Y$    | $X_1$     | $X_2$   |
+|----------|:----- :|:------- -:|:-------:|
+| Person 1 |  650   |    550    |     100 |
+| Person 2 |  800   |    600    |     200 |
+| Person 3 |  500   |   .red[0]   |     ?   |
+| Person 4 |  1,600 |  1,300    |     300 |
+| Person 5 |  650   |   .red[0]      |     ?   |
+| Person 6 |  900   |    .red[0]      |     ?   |
+| Person 7 |  1,200 |    700    |  500    |
+
+In $1,000s
+
+---
+Can we put bounds on board member average salary?
+$$
+\sum\_{i = 1}^7 X\_{[1]i}
+$$
+
+
+|          | $Y$    | $X_1$     | $X_2$   |
+|----------|:----- :|:------- -:|:-------:|
+| Person 1 |  650   |    550    |     100 |
+| Person 2 |  800   |    600    |     200 |
+| Person 3 |  500   |   .blue[500]   |     ?   |
+| Person 4 |  1,600 |  1,300    |     300 |
+| Person 5 |  650   |   .blue[500]      |     ?   |
+| Person 6 |  900   |    .blue[500]      |     ?   |
+| Person 7 |  1,200 |    700    |  500    |
+
+In $1,000s
+
+
+---
+
+```{r}
+uoc_board <- uoc_board |> 
+  mutate(X1_lb = case_when(is.na(X1) ~ 0,
+                           TRUE ~ X1),
+         X1_ub = case_when(is.na(X1) ~ 500,
+                           TRUE ~ X1))
+```
+
+
+--
+
+```{r}
+uoc_board |> 
+  summarize(
+    mean(X1_lb),
+    mean(X1_ub)
+  )
+```
+
+
+---
+
+Income is *point identified.*
+
+--
+
+Salary and returns on investments are *interval identified*. 
+
+
+---
+### In-class exercise
+
+Calculate the interval range of possible values for $$
+\sum\_{i = 1}^7 X\_{[2]i}
+$$
+
+```{r}
+uoc_board <- tibble(
+  Y = c(650, 800, 500, 1600, 650, 900, 1200),
+  X1 = c(550, 600, NA, 1300, NA, NA, 700),
+  X2 = c(100, 200, NA, 300, NA, NA, 500))
+```
+
+
+|          | $Y$    | $X_1$     | $X_2$   |
+|----------|:----- :|:------- -:|:-------:|
+| Person 1 |  650   |    550    |     100 |
+| Person 2 |  800   |    600    |     200 |
+| Person 3 |  500   |    ?      |     ?   |
+| Person 4 |  1,600 |  1,300    |     300 |
+| Person 5 |  650   |    ?      |     ?   |
+| Person 6 |  900   |    ?      |     ?   |
+| Person 7 |  1,200 |    700    |  500    |
+
+In $1,000s
+
+
+---
+
+
+## Inference
+
+- The practice of *inferring* something about a population/distribution from observable data. 
+
+---
+## Inference
+
+- What is *descriptive inference*?
+
+--
+
+- What is *causal inference*?
+
+---
+
+## Elements of descriptive/causal inference [Holland]
+
+-  Define a population of interest. $U$
+
+--
+
+- Determine a variable that is defined over this population, for which there is variation. $A$
+
+--
+
+- Define response variable "of interest." $Y$ 
+
+--
+
+We can consider how $A$ and $Y$ vary together. Without further assumptions, this is just correlation. 
+
+
+---
+
+What does it mean for something to cause something else?
+
+---
+## No causation without manipulation [Holland]
+
+
+- Causes are only things that could (hypothetically) be treatments in experiments. 
+
+--
+
+ - NOT attributes—e.g., race and biological sex can't plausibly be manipulated, because there is no meaningful *counterfactual*. 
+
+--
+
+- What we can manipulate: others' *perception* of race/sex 
+<!-- \citep{bertrand2004emily}  -->
+
+--
+
+- To the extent that sex/gender are social constructs, can we consider counterfactual socialization?
+
+
+
+---
+
+## Fundamental problem of causal inference
+
+
+- We only see the response variable under one version of treatment.
+
+--
+
+- Why does this matter?
+
+---
+
+## Resolution (?) of the fundamental problem of causal inference
+
+- Causal inference is not impossible. 
+
+--
+
+- But making causal inferences without making assumptions IS impossible.
+
+--
+
+- So we need to depend on some assumptions. 
+
+--
+
+- The crux: how plausible are these assumptions?
+
+
+---
+## Some notation for joint relationships
+
+
+- Correlation: $X$ and $Y$ are correlated. E.g., $\uparrow$ age and $\uparrow$ income. 
+
+--
+
+- Causation: $X$ *moves* $Y$. E.g., when I fertilize the plants, I get a higher yield. 
+
+  +  Implies a *counterfactual*. 
+
+--
+
+ +  If I **hadn't** moved $X$, we would see a different outcome for $Y$. 
+
+--
+
+ +  Holland (1986): "No causation without manipulation."
+
+
+---
+
+## Joint relationships: notation
+
+
+-  Dependent variable: ( $Y$ ), the thing we want to study variation in; also "outcome," "response." 
+
+--
+
+- Independent variable: ( $X$ ) in causal settings, the thing that we manipulate. Also "treatment." In non-causal settings, something that may have some natural variation in the population associated with the dependent variable. 
+
+---
+
+## Potential outcomes: notation
+
+Assume $X$ is binary. 
+
+
+
+$$
+Y_i = \begin{cases}
+Y_i(0) & X_i = 0 \\\
+Y_i(1) & X_i = 1 \\\
+\end{cases}
+$$
+
+--
+
+We observe a $Y_i$ for every observation, but only one of $\{Y_i(0), Y_i(1)\}$. 
+
+--
+
+Why is $\textrm{E}[Y_i(0)]$ different from $\textrm{E}[Y_i|X = 0]$? 
+
+--
+
+What is the expectation *over*? 
+--
+Role of conditional and joint distributions is key in identification. 
+
+
+---
+## Individual treatment effect
+
+$$
+\tau_i = Y_i(1)-Y_i(0)
+$$ 
+
+--
+
+We're interested in the treatment effect, the difference in potential outcomes had we applied treatment $X$, vs. if we had not. 
+
+--
+
+
+- What we can't see: $\tau_i$
+
+--
+
+- Fundamental problem of causal inference: we can't see *both* potential outcomes for a given unit *at the same time*. 
+
+--
+
+- Holland (1986)'s assumptions: some structure we can impose on the data to back out counterfactuals. (We usually don't know if assumptions are true.) 
+
+--
+
+- Experiments use the independence assumption...
+--
+this one we have some more control over. 
+
+<!-- --- -->
+
+<!-- ## The special role of experiments -->
+
+
+<!--  - In experiments, treatment is randomly assigned by the researcher. -->
+
+<!-- -- -->
+
+<!--  - So we know independence holds by design. -->
+
+<!-- -- -->
+
+<!--  - We can compare groups and get the *average* causal effect.  -->
+
+<!-- -- -->
+
+<!--  - (When can we also get the *individual* causal effect?)  -->
+
+---
+
+## Independence
+
+
+- Units that receive treatment look, on average, like units that do not.
+
+--
+
+- In experiments, we assign treatment *randomly*, so we know that there is no inherent difference between subjects that *could have* received treatment and *could have* received control—all subjects *could have* received all versions of treatment, hypothetically. 
+--
+(The subjunctive mood of research design ...)
+
+--
+
+- Why is this so special? 
+
+--
+
+- What this give us: *identification* of the expected potential outcome  
+$$\textrm{E}[Y_i | X_i = 1] = \textrm{E}[Y_i(1)]$$ 
+
+--
+
+- From this, we can identify the average treatment effect:
+$$
+\tau = \textrm{E}[Y_i(1)-Y_i(0)]
+$$
+
+---
+
+- What assumptions would allow us to identify  *individual* causal effects?
+
+
+
+```{r knit, echo=FALSE, message=FALSE, warning=FALSE, eval=FALSE}
+knitr::purl(input = "slides_iqss_week_4_pt1.Rmd",
+            output = "../code_etc_from_lecture/slides_iqss_week_4_pt1.R")
+```
