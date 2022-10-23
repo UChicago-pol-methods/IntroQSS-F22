@@ -1,0 +1,156 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 5. Estimation (1)"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+      countIncrementalSlides: false
+
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning = F, message = F)
+```
+
+
+<!-- conditional expectation before lecture 5. -->
+
+<!-- how does independence ensure that E[Y_i(1) | D_i = 1] =  E[Y_i(1) | D_i = 0] --> 
+
+
+
+# Big picture/motivation
+
+Week 1: Programming kick-start
+
+Week 2: Probability
+
+Week 3: Summarizing distributions 
+
+Week 4: Identification and causal estimands 
+
+**Today, Week 5**: Estimation (learning from random samples)
+
+---
+
+
+# Independent and identically distributed (IID) 
+
+**Definition 3.1.1** Let $X_1, X_2, \ldots, X_n$ be random variables with CDFs $F_1, F2, \ldots, F_n$, respectively. Let $F_A$ denote the joint CDF of the random variables with indices in the set $A$. Then $X_1, X_2, \ldots, X_n$ are *independent and identically distributed* if they satisfy the following: 
+
+- Mutually independent: $\forall A \subseteq \{1, 2, \ldots, n\}, \quad \forall (x_1, x_2, \ldots, x_n) \in \mathbb{R}^n, F_A\left((x_i)_{i \in A}\right) = \prod_{i \in A} F_i(x_i)$
+- Identically distributed: $\forall i, j \in \{1, 2, \ldots, n\}$ and $\forall x \in \mathbb{R}, F_i(x) = F_j(x).$
+
+--
+
+Suppose we're doing a survey. $X_i$ is the voting intention (1 if D, 0 if R) of the $i$'s survey respondent.
+
+--
+
+What would make our survey sampling iid? What would make it not iid?
+
+
+???
+
+Make it iid: Random sampling with equal probability of selection and with replacement, or random sampling without replacement from a large population
+
+Make it not iid: Random sampling w/o replacement from a small population; sequential random sampling with probability based on previous draws; sampling where e.g. 1 and 2 are the same person by design, so $X_1 = X_2$ 
+
+---
+
+# IID?
+
+- Say we are doing random sampling for a survey. Subject 1 is a Democrat. Subject 2 is a Republican. How can this be IID? i.e. seems like $X_1$ and $X_2$ are not identically distributed.
+
+--
+
+
+- Say we are doing random sampling for a survey. Subject 1 and Subject 2,498 are from the same household. How can this be IID? i.e. seems like $X_1$ and $X_{2498}$ are not independent.
+
+
+??? A&M imply that it is not IID if two subjects are from the same househod, but I think they are confusing IID sampling and IID errors given a model.
+
+---
+
+# Sample statistic 
+
+**Definition 3.2.1** *Sample statistic* 
+
+For i.i.d. random variables $X_1, X_2, \ldots, X_n$, a *sample statistic* is a function of $X_1, X_2, \ldots, X_n$:
+
+$$T_{(n)} = h_{(n)}(X_1, X_2, \ldots, X_n)$$
+
+where $h_{(n)}: \mathbb{R}^n \rightarrow \mathbb{R}, \forall n \in \mathbb{N}$.
+
+--
+
+Examples of sample statistics: sample mean, sample variance, sample covariance, regression coefficient
+
+---
+
+# Sample mean
+
+For i.i.d. random variables $X_1, X_2, \ldots, X_n$, the *sample mean* is 
+
+$$\overline X = \frac{X_1 + X_2 + \ldots + X_n}{n} = \frac{1}{n} \sum_{i = 1}^{n} X_i$$
+
+--
+
+Proof that $E[\overline{X}] = E[X]$ (Theorem 3.2.3):
+
+$$\begin{aligned} E[\overline{X}] &= E\left[\frac{1}{n}(X_1 + X_2 + \ldots + X_n) \right] \\\
+&= \frac{1}{n} E\left[X_1 + X_2 + \ldots + X_n \right] \\\
+&= \frac{1}{n} \left( E[X_1] + E[X_2] + \ldots + E[X_n] \right) \\\
+&= \frac{1}{n} \left( n E[X]  \right) \\\
+&= E[X] 
+\end{aligned}$$
+
+
+---
+
+# Sampling variance of the sample mean
+
+For i.i.d. variables $X_1, X_2, \ldots, X_n$ with finite variance $V[X]$, the *sampling variance* of $\overline{X}$ is
+
+$$V[\overline{X}] = \frac{V[X]}{n}$$
+Proof: 
+
+$$\begin{aligned} V[\overline{X}] &= V\left[\frac{1}{n}(X_1 + X_2 + \ldots + X_n) \right] \\\
+&= \frac{1}{n^2} V\left[X_1 + X_2 + \ldots + X_n \right] \\\
+&= \frac{1}{n^2} \left( V[X_1] + V[X_2] + \ldots + V[X_n] \right) \\\
+&= \frac{1}{n^2} \left( n V[X]  \right) \\\
+&= \frac{V[X]}{n} 
+\end{aligned}$$
+
+
+
+---
+
+# Simulation 
+
+We've seen that 
+
+$$V[\overline{X}] = \frac{V[X]}{n}$$
+
+How could we show this for an example?
+
+--
+
+**Pseudo-code:**
+
+- Define population or random variable for $X$, note variance $V[X]$
+- Choose sample size $n$
+- Many times: 
+    - Draw a sample of size $n$ 
+    - Compute the sample mean $\overline{X}$
+    - Store it
+- Confirm that variance of sample means is about $\frac{V[X]}{n}$
+
+
+
+
