@@ -117,11 +117,11 @@ tibble(c = cs, mse = mses) |>
 
 **Consider the random variable $X$ characterized by the following PMF:**
 
-| $x$   | $P(X = x)$ |
-|-------|:----------:|
-|   2   |     .1     |
-|   3   |     .2     |
-|   4   |     .7     |
+| $x$   | $P(X = x)$  |
+|:-----:|:----------:|
+|  -1   |     .6     |
+|   0   |     .1     |
+|   2   |     .3     |
 
 **2.1 Show that the variance of $X$ is the same whether we compute it by the formula in Definition 2.1.12 or the Alternative Formula in Theorem 2.1.13. (We want the two variance computations, not the proof.)**
 
@@ -129,8 +129,8 @@ First we calculate the mean.
 $$
 \begin{aligned}
   \E[X] &= \sum_x x P(X = x)\\
-  & = 2 \times .1 + 3 \times .2 = 4 \times .7 \\
-  & = 3.6
+  & = -1 \times .6 + 0 \times .1 + 2 \times .3 \\
+  & = 0
 \end{aligned}
 $$
 
@@ -138,17 +138,17 @@ Using Definition 2.1.12:
 $$
 \begin{aligned} 
   \V[X] & = \E\left[(X - \E[X])^2\right] \\
-  &=  \E\left[(X - 3.6)^2\right]\\
-  &=  (2 - 3.6)^2 \times .1 + (3 - 3.6)^2 \times .2 + (4 - 3.6)^2 \times .7 \\
-  &=  0.44\end{aligned}  
+  &=  \E\left[(X - 0)^2\right]\\
+  &=  (-1)^2 \times .6 + 0^2 \times .1 + 2^2 \times .3 \\
+  &=  1.8\end{aligned}  
 $$
 
 Using Theorem 2.1.13:
 $$
 \begin{aligned} 
   \V[X] & = \E[X^2]  - \E[X]^2 \\
-  &=  \left( 2^2 \times .1 + 3^2\times .2 + 4^2 \times .7\right) - 3.6^2\\
-  &=  0.44\end{aligned}  
+  &=  \left( (-1)^2 \times .6 + 0^2\times .1 + 2^2 \times .3\right) - 0^2\\
+  &=  1.8\end{aligned}  
 $$
 
 **2.2 Show that the variance is the same if you add a constant to $X$. (We want the two variance computations, not the proof of the first part of Theorem 2.1.14.)**
@@ -157,20 +157,20 @@ Using Definition 2.1.12:
 $$
 \begin{aligned} 
   \V[X + c] & = \E\left[(X + c - \E[X + c])^2\right] \\
-  &=  \E\left[\left(X + c - ( 3.6 + c) \right)^2\right]\\
-  &=  \E\left[(X  - 3.6)^2\right]\\
-  &=  (2 - 3.6)^2 \times .1 + (3 - 3.6)^2 \times .2 + (4 - 3.6)^2 \times .7 \\
-  &=  0.44\end{aligned}  
+  &=  \E\left[\left(X + c - ( 0 + c) \right)^2\right]\\
+  &=  \E\left[X  ^2\right]\\
+  &=  (-1)^2 \times .6 + 0^2 \times .1 + 2^2 \times .3\\
+  &=  1.8\end{aligned}  
 $$
 
 Using Theorem 2.1.13:
 $$
 \begin{aligned} 
   \V[X + c] & = \E[(X + c)^2]  - \E[X + c]^2 \\
-  &=  \left( (2 + c)^2 \times .1 + (3 + c)^2\times .2 + (4 + c)^2 \times .7\right) - (3.6 + c)^2\\
-  &=  \left( \left(2^2 + 4c + c^2\right) \times .1 + (3^2 + 6c + c^2)\times .2 + (4^2 + 8c + c^2) \times .7\right) - (3.6^2 + 7.2c + c^2)\\
-  &=  0.44 + (7.2c - 7.2c) + (c^2 - c^2)\\
-  &=  0.44\end{aligned}  
+  &=  \left( (-1 + c)^2 \times .6 + (0 + c)^2\times .1 + (2 + c)^2 \times .3\right) - (0 + c)^2\\
+  &=  \left( \left((-1)^2 - 2c + c^2\right) \times .6 + (0^2 + 0c + c^2)\times .1 + (2^2 + 4c + c^2) \times .3\right) - (0^2 + 0c + c^2)\\
+  &=  1.8 + (-1.2c + 1.2c) + (.6c^2 +.1c^2 + .3c^2 -c^2)\\
+  &=  1.8\end{aligned}  
 $$
 
 
@@ -180,19 +180,19 @@ Using Definition 2.1.12:
 $$
 \begin{aligned} 
   \V[aX] & = \E\left[(aX - \E[aX])^2\right] \\
-  &=  \E\left[(aX - 3.6a)^2\right]\\
-  &=  (2a - 3.6a)^2 \times .1 + (3a - 3.6a)^2 \times .2 + (4a - 3.6a)^2 \times .7 \\
-  =  0.256a^2 \times .1 + 0.072a^2 + 0.11a^2\\
-  &=  0.44a^2\end{aligned}  
+  &=  \E\left[(aX - 0a)^2\right]\\
+  &=  (-1a)^2 \times .6 + (0a)^2 \times .1 + (2a)^2 \times .3 \\
+  & =  .6a^2 + 0a^2 + 1.2a^2\\
+  &=  1.8a^2\end{aligned}  
 $$
 
 Using Theorem 2.1.13:
 $$
 \begin{aligned} 
-  \V[aX] & = \E[aX^2]  - \E[aX]^2 \\
-  &=  \left( (2a)^2 \times .1 + (3a)^2\times .2 + (4a)^2 \times .7\right) - (3.6a)^2\\
-   &=  \left( .4a^2  + 1.8a^2 + 11.2a^2 \right) - 12.96a^2\\
-  &=  0.44a^2\end{aligned}  
+  \V[aX] & = \E[(aX)^2]  - \E[aX]^2 \\
+  &=  \left( (-1a)^2 \times .6 + (0a)^2\times .1 + (2a)^2 \times .3\right) - a^20^2\\
+   &=  \left( .6a^2  + 0a^2 + 1.2a^2 \right) \\
+  &=  1.8a^2\end{aligned}  
 $$
 
 # Question 3: CDF of a discrete random variable

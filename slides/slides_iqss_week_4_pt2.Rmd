@@ -620,9 +620,6 @@ Population is state legislators.
 Treatment is 1 if the sender was DeShawn Jackson, and 0 if Jake Mueller. 
 
 ```{r}
-table(df$treat_deshawn)
-
-# or
 df |> 
   group_by(treat_deshawn) |> 
   summarize(n())
@@ -633,7 +630,9 @@ df |>
 The primary outcome is whether legislators replied at all. 
 
 ```{r}
-table(df$reply_atall)
+df |> 
+  group_by(reply_atall) |> 
+  summarize(n())
 ```
 
 ---
