@@ -39,6 +39,13 @@ Week 4: Identification and causal estimands
 ---
 
 
+class: inverse, middle, center
+
+# Sampling
+
+
+---
+
 # Independent and identically distributed (IID) 
 
 **Definition 3.1.1** Let $X_1, X_2, \ldots, X_n$ be random variables with CDFs $F_1, F2, \ldots, F_n$, respectively. Let $F_A$ denote the joint CDF of the random variables with indices in the set $A$. Then $X_1, X_2, \ldots, X_n$ are *independent and identically distributed* if they satisfy the following: 
@@ -48,11 +55,11 @@ Week 4: Identification and causal estimands
 
 --
 
-Suppose we're doing a survey. $X_i$ is the voting intention (1 if D, 0 if R) of the $i$'s survey respondent.
+Suppose we're doing a survey. $X_i$ is the voting intention (1 if D, 0 if R) of survey respondent $i$.
 
 --
 
-What would make our survey sampling iid? What would make it not iid?
+What would make our survey sampling process iid? What would make it not iid?
 
 
 ???
@@ -72,8 +79,64 @@ Make it not iid: Random sampling w/o replacement from a small population; sequen
 
 - Say we are doing random sampling for a survey. Subject 1 and Subject 2,498 are from the same household. How can this be IID? i.e. seems like $X_1$ and $X_{2498}$ are not independent.
 
+--
 
-??? A&M imply that it is not IID if two subjects are from the same househod, but I think they are confusing IID sampling and IID errors given a model.
+Keep in mind that i.i.d. sampling does not imply/require a homogeneous population. 
+
+
+
+???
+
+A&M imply that it is not IID if two subjects are from the same househod, but I think they are confusing IID sampling and IID errors given a model.
+
+---
+
+# The essential role of sampling
+
+"Uncertainty" in frequentist statistics arises because 
+
+- our estimands are characteristics of the whole population, but
+- we have a finite sample from that population
+
+--
+
+What could the answer be if we observed the whole population? 
+
+--
+
+Sometimes we work with surveys. Then the above makes sense.
+
+--
+
+What about when we're studying e.g. OECD countries? Sampling from a *super-population*.
+
+--
+
+A&M endorse Angrist's pragmatic view (footnote 7). Bayesian alternative. 
+
+
+---
+
+# Sampling and uncertainty
+
+"Uncertainty" in frequentist statistics arises because 
+
+- our estimands are characteristics of the whole population, but
+- we have a finite sample from that population
+
+--
+
+So we will try to figure out how far our estimate could be from the estimand. This depends on the variance (across samples) of the estimator. 
+
+
+
+---
+
+
+class: inverse, middle, center
+
+# Learning from samples
+
 
 ---
 
@@ -115,10 +178,16 @@ $$\begin{aligned} E[\overline{X}] &= E\left[\frac{1}{n}(X_1 + X_2 + \ldots + X_n
 
 # Sampling variance of the sample mean
 
-For i.i.d. variables $X_1, X_2, \ldots, X_n$ with finite variance $V[X]$, the *sampling variance* of $\overline{X}$ is
+How much would the sample mean $\overline{X}$ vary across iid random samples?
 
-$$V[\overline{X}] = \frac{V[X]}{n}$$
-Proof: 
+<!-- Imagine:  -->
+
+<!-- For i.i.d. variables $X_1, X_2, \ldots, X_n$ with finite variance $V[X]$, the *sampling variance* of $\overline{X}$ is -->
+
+<!-- $$V[\overline{X}] = \frac{V[X]}{n}$$ -->
+--
+
+Theory:
 
 $$\begin{aligned} V[\overline{X}] &= V\left[\frac{1}{n}(X_1 + X_2 + \ldots + X_n) \right] \\\
 &= \frac{1}{n^2} V\left[X_1 + X_2 + \ldots + X_n \right] \\\
@@ -127,30 +196,713 @@ $$\begin{aligned} V[\overline{X}] &= V\left[\frac{1}{n}(X_1 + X_2 + \ldots + X_n
 &= \frac{V[X]}{n} 
 \end{aligned}$$
 
+--
 
+Explain in words.
 
 ---
 
 # Simulation 
 
-We've seen that 
+We showed that 
 
 $$V[\overline{X}] = \frac{V[X]}{n}$$
 
-How could we show this for an example?
+How could we show/test that it is true?
 
 --
 
-**Pseudo-code:**
+<br>
 
-- Define population or random variable for $X$, note variance $V[X]$
-- Choose sample size $n$
-- Many times: 
-    - Draw a sample of size $n$ 
-    - Compute the sample mean $\overline{X}$
-    - Store it
-- Confirm that variance of sample means is about $\frac{V[X]}{n}$
+1. Explain a procedure in words first
+1. Implement it in `R` (problem set)
 
 
+---
 
 
+class: inverse, middle, center
+
+# Coding detour: iteration
+
+
+---
+
+# Iteration
+
+We have learned how to take a sample of size $n$ from a distribution/population: 
+
+```{r}
+n <- 5
+x <- c(1,2,5)
+
+sample(x, size = n, replace = T)
+sample(x, size = n, replace = T, prob = c(.5, .3, .2))
+rnorm(n, mean = 0, sd = 1)
+
+```
+
+--
+
+But how do we do this $m$ times? (e.g. $m = 10$ times)
+
+---
+
+# Iteration (1)
+
+Easiest way (base `R`): `replicate()`
+
+```{r}
+n <- 5
+m <- 10
+x <- c(1,2,5)
+
+sample(x, size = n, replace = T)
+
+replicate(m, sample(x, size = n, replace = T))
+
+set.seed(60637)
+replicate(m, mean(sample(x, size = n, replace = T)))
+```
+
+---
+
+# Iteration (2)
+
+Another way: `for`-loops.
+
+```{r}
+(sample_means <- rep(NA, m))
+set.seed(60637)
+for(i in 1:m){
+  sample_means[i] <- mean(sample(x, size = n, replace = T))
+}
+sample_means
+```
+
+---
+
+# Iteration (3)
+
+The "tidy" way: `map`
+
+```{r}
+set.seed(60637)
+map_dbl(1:10, ~ mean(sample(x, size = n, replace = T)))
+```
+
+--
+
+`map` allows you to pass vectors of arguments:
+
+```{r}
+map_dbl(c(1,3,5), ~ mean(rnorm(n = 50, mean = .x, sd = 1)))
+map2_dbl(c(1,3,5), c(5, 30, 10000), ~ mean(rnorm(n = .y, mean = .x, sd = 1)))
+```
+
+
+<!-- # tibble(n = c(5, 30, 10000), mean = c(1,3,5), sd = c(5, 2, 1)) %>% -->
+<!-- #   mutate(samp = pmap(., rnorm), -->
+<!-- #          samp_mean = map_dbl(samp, ~mean(.x))) -->
+
+
+---
+
+class: inverse, middle, center
+
+# Asymptotic properties of the sample mean
+
+---
+
+
+# Weak law of large numbers
+
+We noted that $E[\overline{X}] = E[X]$: sample mean is unbiased estimator of expected value.
+
+--
+
+WLLN says: the larger the sample $n$, the closer the $\overline{X}$ gets to $E[X]$: 
+
+
+**Theorem 3.2.8** Let $X_1, X_2, \ldots, X_n$ be i.i.d. random variables with finite variance $\text{V}[X] > 0$, and let $\overline{X}_{(n)} = \frac{1}{n} \sum_{x=1}^n X_i$. Then 
+
+$$\overline{X}_{(n)} \overset{p}{\to} \text{E}[X]$$
+
+--
+
+In words, the larger the sample size, the closer the sample mean $\overline{X}$ should get to the expected value $E[X]$.
+
+--
+
+Kind of boring/obvious.
+
+---
+
+
+
+# Repeated sample means
+
+Define random variable $X$: 
+
+$$
+f(x) = \begin{cases}
+1/5 & x = 1 \\\
+2/5 & x = 2 \\\
+1/5 & x = 3 \\\
+1/5 & x = 5 \\\
+0 & \text{otherwise}
+\end{cases}
+$$
+Repeatedly draw a sample of size $n = 2$ with replacement, record sample mean. What will the distribution of these sample means look like?
+
+---
+
+# Repeated sample means (2) 
+
+```{r, echo = F}
+x <- c(1, 2, 2, 3, 5)
+ex = mean(x)
+vx <- mean((x - mean(x))^2)
+
+n <- 2
+m <- 10000
+samp_means <- replicate(m, mean(sample(x, size = n, replace = T)))
+
+tibble(sm = samp_means) |> 
+  count(sm) -> counts 
+
+bind_rows(counts |> mutate(type = "tip"),
+          counts |> mutate(type = "base", n = 0)) -> for_plot 
+
+for_plot %>% 
+  ggplot(aes(x = sm, y = n)) + 
+  geom_point(data = filter(for_plot, type == "tip")) +
+  geom_line(aes(group = factor(sm))) +
+  labs(x = "Sample mean", y = "Frequency in 10,000 draws")
+```
+
+
+---
+
+# Repeated sample means (3) 
+
+Now try $n = 1000$: 
+
+```{r, echo = F}
+n <- 1000
+samp_means <- replicate(m, mean(sample(x, size = n, replace = T)))
+
+tibble(sm = samp_means) |> 
+  ggplot(aes(x = sm)) + 
+  geom_histogram(aes(y = ..density..), bins = 50) + 
+  stat_function(fun = dnorm,
+                args = list(mean = mean(x), sd = sqrt((mean(x^2) - mean(x)^2)/n)),
+                col = "red")
+```
+
+
+---
+
+# CLT
+
+**Theorem 3.2.24** Central limit theorem
+
+Let $X_1, X_2, \ldots, X_n$ be i.i.d. random variables with finite $E[X] = \mu$ and finite $V[X] = \sigma^2 > 0$. Then 
+
+$$ \frac{\sqrt{n} \left(\overline{X} - \mu\right)}{\sigma} \overset{d}{\to} N(0, 1)$$ 
+
+--
+
+This means that for a large enough $n$, $\overline{X}$ should be distributed roughly $N(\mu, \sigma^2/n)$.
+
+--
+
+
+**Note**: $V[\overline{X}] = V[X]/n$ is true for any sample size. CLT applies asymptotically (i.e. large $n$).
+
+---
+
+# Illustration using above example
+
+```{r, echo = F, cache = T}
+expand_grid(n = c(3, 10, 20, 30, 100, 1000),
+            rep = 1:10000) |> 
+  mutate(samp = map(n, sample, x = c(1, 2, 2, 3, 5), replace = T),
+         samp_mean = map_dbl(samp, mean),
+         z = sqrt(n)*(samp_mean - ex)/sqrt(vx),
+         facet_labs = fct_reorder(str_c("n = ", n), n)) |> 
+  ggplot(aes(x = z)) +
+  geom_histogram(aes(y = ..density..), breaks = .0001 + seq(-3, 3, by = .25), alpha = .6) + 
+  geom_density(col = "blue") + # histogram(aes(y = ..density..), breaks = .0001 + seq(-3, 3, by = .25)) +
+  facet_wrap(vars(facet_labs)) + 
+  stat_function(fun = dnorm,
+                args = list(mean = 0, sd = 1),
+                col = "red") + 
+  labs(x = "z-score", y = "Density")
+```
+
+
+
+---
+
+### CLT intuition: why is $\overline{X}$ normally distributed, even when $X$ is not?
+
+$$\begin{aligned} \overline{X} &= \frac{X_1 + X_2 + \ldots + X_n}{n}\\\
+&= \frac{(E[X] + \epsilon_1) + (E[X] + \epsilon_2) + \ldots + (E[X] + \epsilon_n)}{n} \\\
+&= \frac{nE[X] + \sum_{i = 1}^n \epsilon_i}{n} \\\
+&= E[X] + \frac{1}{n} \sum_{i = 1}^n \epsilon_i \\\
+\end{aligned}$$
+
+where $\epsilon_i \equiv X_i - E[X]$ ("deviations").
+
+--
+
+Note that $\text{E}[\epsilon_i] = \text{E}[X_i] - E[E[X]] = E[X_i] - E[X] = 0$.
+
+--
+
+And $E[\sum_{i = 1}^n \epsilon_i] = \sum_{i = 1}^n E[\epsilon_i] = 0$.
+
+--
+
+Given large enough $n$, $|\sum_{i = 1}^n \epsilon_i|$ should be close to zero, with larger values less likely. This is true regardless of distribution of $X$. 
+
+
+---
+
+# Combinatorics link
+
+Suppose you are flipping a coin $1000$ times. How many ways are there to get 
+
+- 1000 heads?
+- 500 heads?
+
+--
+
+$${n \choose k} = \frac{n!}{k!(n - k)!} $$ 
+
+
+--
+
+In `R`: 
+
+```{r}
+choose(n = 1000, k = 1000)
+choose(n = 1000, k = 500)
+```
+
+--
+
+If normalized, this is the PMF for the RV "number of heads in $n$ flips".
+
+---
+
+# Combinatorics link (2)
+
+Compute the number of ways to get $k \in 0, 1, \ldots, 1000$ heads in 1000 flips:
+
+```{r}
+ks <- 0:1000
+n <- 1000
+```
+
+--
+
+```{r}
+# sapply
+nways <- sapply(ks, choose, n = n)
+head(nways, 4)
+```
+
+--
+
+```{r}
+# for-loop
+nways_2 <- rep(NA, 10001)
+for(k in ks){
+  nways_2[k+1] <- choose(k = k, n = n)
+}
+head(nways_2, 4)
+```
+
+---
+
+# Combinatorics link (3)
+
+A "tidy" way to compute the number of ways to get $k \in 0, 1, \ldots, 1000$ heads in 1000 flips:
+
+```{r}
+# map
+dat <- tibble(k = ks) |> 
+  mutate(nways_3 = map_dbl(k, choose, n = n))
+dat
+```
+
+---
+
+# Combinatorics link (4)
+
+```{r}
+dat |> 
+  ggplot(aes(x = k, y = nways_3)) +
+  geom_point()
+```
+
+---
+
+# Combinatorics link (5)
+
+```{r}
+dat |> 
+  mutate(prop = nways_3/sum(nways_3),
+         dn = dnorm(x = k, mean = 500, sd = sqrt(1000*.5^2))) |> 
+  ggplot(aes(x = k, y = prop)) + 
+  geom_point() +
+  geom_line(aes(y = dn), col = "red") + 
+  coord_cartesian(xlim = c(400, 600))
+```
+
+
+---
+
+# Combinatorics link: the bottom line
+
+When flipping 1000 coins, it is possible to get any number of heads between 0 and 1000, but there are more ways to get around 500 heads, so it is more likely.
+
+--
+
+How much more likely? Combinatorics and normal distribution say the same thing. 
+
+--
+
+Similarly, when computing a sample mean of $X$, many values are likely but there are more ways to get something close to $E[X]$. CLT says that, given large enough $n$, the normal distribution tells you how much more likely.
+
+--
+
+Fundamentally, it's because independent random deviations usually roughly cancel out.  
+
+
+---
+
+
+```{r, echo = F}
+plot_function <- function(dat, mean_x = 10, sd_x = 3, title = "X is normal"){
+  
+  dat |> 
+    mutate(samp_mean = map_dbl(samp, mean),
+           z = sqrt(n)*(samp_mean - mean_x)/sd_x,
+           facet_labs = fct_reorder(str_c("n = ", n), n)) |> 
+    ggplot(aes(x = z)) +
+    geom_histogram(aes(y = ..density..), breaks = .0001 + seq(-3, 3, by = .25), alpha = .6) + 
+    geom_density(col = "blue") +
+    facet_wrap(vars(facet_labs)) + 
+    stat_function(fun = dnorm,
+                args = list(mean = 0, sd = 1),
+                col = "red") + 
+    labs(x = "z-score", y = "Density", title = title)
+}
+```
+
+
+# CLT: big enough sample?
+
+```{r, echo = F, cache = T, fig.height = 6}
+expand_grid(n = c(3, 10, 20, 30, 100, 1000),
+            rep = 1:10000) |> 
+  mutate(samp = map(n, rbinom, size = 1, prob = .5)) -> dat
+
+plot_function(dat, mean_x = .5, sd_x = .5, title = "X is binomial; Pr(success) = .5")
+```
+
+
+---
+
+# CLT: big enough sample?
+
+```{r, echo = F, cache = T, fig.height = 6}
+expand_grid(n = c(3, 10, 20, 30, 100, 1000),
+            rep = 1:10000) |> 
+  mutate(samp = map(n, rbinom, size = 1, prob = .9)) -> dat
+
+plot_function(dat, mean_x = .9, sd_x = sqrt(.9*.1), title = "X is binomial; Pr(success) = .9")
+```
+
+
+---
+
+# CLT: big enough sample?
+
+```{r, echo = F, fig.height = 6}
+x <- seq(0, 5, by = .01)
+dx <- dlnorm(x)
+tibble(x, dx) |> 
+  ggplot(aes(x = x, y = dx)) + 
+  geom_line() + 
+  labs(title = "Lognormal distribution")
+```
+
+
+---
+
+
+# CLT: big enough sample?
+
+```{r, echo = F, cache = T, fig.height = 6}
+
+expand_grid(n = c(3, 10, 20, 30, 100, 1000),
+            rep = 1:10000) |> 
+  mutate(samp = map(n, rlnorm)) -> dat
+
+plot_function(dat, mean_x = exp(1/2), sd_x = sqrt(exp(1)^2 - exp(1)), title = "X is lognormal")
+```
+
+
+---
+
+class: inverse, middle, center
+
+# Plug-in principle
+
+
+---
+
+# Plug-in principle
+
+**Plug-in principle**: "Write down the feature of the population that we are interested in, and then use the sample analog to estimate it" (A&M, page 116)
+
+- sample mean $\overline{X} = \frac{1}{n}\sum_i X_i$ is sample analog of $\text{E}[X] = \sum_x x f(x)$
+- (plug-in) sample variance $\overline{X^2} - \overline{X}^2$ is sample analog of $\text{V}[X] = E[X^2] - E[X]^2$
+- OLS estimates are sample analog of best (MSE-minimizing) linear predictor
+
+---
+
+
+
+# Plug-in priciple (2)
+
+**Plug-in principle**: "Write down the feature of the population that we are interested in, and then use the sample analog to estimate it" (A&M, page 116)
+
+--
+
+- In theory 
+    - CDF $F(x)$ contains all information about R.V., empirical CDF $\hat{F}(x)$ contains all information about sample
+    - empirical CDF $\hat{F}(x)$ unbiased and consistent for $F(x)$
+    - our estimands can be expressed as functions of the CDF $F(x)$
+    - for "plug-in estimator", we use $\hat{F}(x)$ instead
+- In practice
+    - to define estimand, we use "population quantities" (e.g. $E[X]$) instead of CDF $F(x)$
+    - to get "plug-in" estimate, we use sample quantities (e.g. $\overline{X}$) instead
+    
+--
+
+**Implication**: what we learned about how $\overline{X}$ relates to $\text{E}[X]$ applies to more complicated estimands
+
+
+---
+
+# An application of the plug-in principle
+
+Suppose we want to calculate the variance of $X$ from a sample.
+
+--
+
+Recall the definition of variance: 
+
+$$\text{V}[X] = E[X^2] - E[X]^2$$
+--
+
+But we have only a sample: we don't know $E[X^2]$ or $E[X]$.
+
+--
+
+Plug-in principle: use the sample mean $\overline{X}$ for $E[X]$, use $\overline{X^2}$ for $E[X^2]$!
+
+--
+
+$$\hat{\text{V}}_{\text{plug-in}}[X] = \overline{X^2} - \overline{X}^2$$
+
+--
+
+How would you compute that, given a sample `x` as below? 
+
+
+```{r}
+x <- c(1,5,2,6,3,4,2)
+```
+
+???
+
+```{r}
+mean(x^2) - mean(x)^2
+```
+
+---
+
+# Bias of the plug-in sample variance estimator
+
+Recalling that $V[\overline{X}] = E[\overline{X}^2] - E[\overline{X}]^2$,
+
+$$\begin{aligned}
+E[\overline{X^2} - \overline{X}^2] &= E[\overline{X^2}] - E[\overline{X}^2] \\\
+&= E[X^2] - \left(E[\overline{X}]^2 +  V[\overline{X}]\right) \\\
+&= E[X^2] - E[X]^2 -  \frac{V[X]}{n} \\\
+&= \overbrace{V[X]}^{\text{target}} - \overbrace{\frac{V[X]}{n}}^{\text{variance of }\overline{X}} \\\
+&= \frac{n - 1}{n} V[X]
+\end{aligned}$$
+
+--
+
+
+To show via simulation:
+
+--
+
+- define RV $X$
+- draw $m$ samples of size $n$, compute plug-in sample variance
+- compare average estimate to $V[X]$
+
+---
+
+# Simulation
+
+```{r, echo = F, fig.height = 6}
+x <- c(1,2,5)
+vx <- mean(x^2) - mean(x)^2
+
+pisv_func <- function(samp){mean(samp^2) - mean(samp)^2}
+pisv_func_2 <- function(samp, ex){mean((samp - ex)^2)}
+
+expand_grid(size = c(2, 5, 10, 20, 50, 100, 500, 1000),
+            rep = 1:1000) |> 
+  mutate(samp = map(size, sample, x = x, replace = T)) |> 
+  mutate(pisv = sapply(samp, pisv_func),
+         pisv_2 = sapply(samp, pisv_func_2, ex = mean(x))) |> 
+  group_by(size) |> 
+  summarize(`1. True variance` = vx,
+            `3. Mean plug-in sample variance from simulation` = mean(pisv),
+            `4. Mean variance estimate given true mean` = mean(pisv_2),
+            `2. Theoretical variance estimate` = (1 - 1/size)*vx) |>
+  pivot_longer(cols = contains("variance")) |> 
+  ggplot(aes(x = size, y = value, col = name)) +
+  geom_line() + 
+  scale_x_log10() + 
+  labs(x = "Sample size", y = "Variance", col = "") + 
+  expand_limits(y = c(1, 3))
+```
+
+(See Rmd for code.)
+
+---
+
+# Intuition
+
+The variance measures the average squared difference from the mean: 
+
+$$V[X] = E[(X - E[X])^2]$$
+--
+
+If we knew $E[X] = \mu$, then our plug-in sample variance estimator would be 
+
+$$\frac{1}{n} \sum_{i = 1}^n (x_i - \mu)^2 $$ 
+
+and this is unbiased (as in simulation above).
+
+--
+
+But we don't know $E[X]$, so we estimate using $\overline{X}$. 
+
+--
+
+If our sample is unrepresentative in one direction, so is $\overline{X}$, making the variance appear smaller (by $V[\overline{X}]$!). 
+
+
+
+---
+
+# Variances
+
+"So far, we have discussed the population variance $V[X]$, and an estimator thereof, namely, the unbiased sample variance, $\hat{V}[X]$. Additionally, in Section 3.2.1 (*Sample Means*), we showed that the sampling variance of the sample mean is $V[\overline{X}] = \frac{V[X]}{n}$. (Do not confuse these three quantities.)" (A&M, page 114)
+
+--
+
+In illustrating $V[\overline{X}]$ we assumed knowledge of the distribution of $X$. But how can we estimate $V[\overline{X}]$ given a sample? (Also why would we do that?)
+
+--
+
+Natural choice is $\hat{V}[X]/n$. 
+
+
+
+
+<!-- Suppose our estimand is the ATE:  -->
+
+<!-- $$\text{ATE} \equiv E[Y_i(1) - Yi(0)] = E[Y_i(1)] - E[Yi(0)]$$ -->
+<!-- "Sample analogue" of $E[Y_i(1)]$: $\frac{\sum_i Y_i D_i }{\sum_i D_i}$ -->
+
+<!-- "Sample analogue" of $E[Y_i(0)]$: $\frac{\sum_i Y_i (1 - D_i) }{\sum_i (1 - D_i)}$ -->
+
+<!-- -- -->
+
+<!-- This estimator is unbiased if $E[Y_i | D_i = 1] = E[Y_i(1)]$ and $E[Y_i | D_i = 0] = E[Y_i(0)]$ (as in an experiment) but otherwise biased.  -->
+
+<!-- -- -->
+
+<!-- In observational studies we can usually do better by "conditioning on" covariates.   -->
+
+
+
+
+
+
+<!-- # Stability of normal distribution -->
+
+<!-- If $X$ and $Y$ are independent and drawn from a normal distribution, then $X+Y$ is distributed normally.  -->
+
+<!-- Illustration:  -->
+
+<!-- ```{r echo = F} -->
+<!-- x <- rnorm(n = 10000, mean = 4, sd = 1) -->
+<!-- y <- rnorm(n = 10000, mean = -4, sd = 1.5) -->
+<!-- bind_rows(tibble(value = x, sample = "X"), -->
+<!--           tibble(value = y, sample = "Y"), -->
+<!--           tibble(value = x+y, sample = "X+Y")) |>  -->
+<!--   ggplot(aes(x = value, fill = sample, col = sample)) + -->
+<!--   geom_histogram(bins = 50, position = "identity", alpha = .5) +  -->
+<!--   geom_vline(xintercept = c(4, -4), lty = 2) +  -->
+<!--   labs(fill = "", col = "") -->
+<!-- ``` -->
+
+
+
+<!-- # CI for the sample mean  -->
+
+<!-- Suppose we have a RV $X$ with $\text{V}[X] = 1$.  -->
+
+<!-- ```{r} -->
+<!-- expand_grid(eps = c(.05, .075, .1, .125, .15), -->
+<!--             n = seq(1000, 100000, by = 1000)) |> # c(1000, 5000, 10000, 50000, 100000)) |>  -->
+<!--   mutate(ub_pr_dev_gt_eps = 1/(n*eps^2)) |>  -->
+<!--   ggplot(aes(x = n, y = ub_pr_dev_gt_eps, lty = factor(eps), group = factor(eps))) + -->
+<!--   geom_line() +  -->
+<!--   scale_x_log10() +  -->
+<!--   coord_cartesian(ylim = c(0, 1)) -->
+<!-- ``` -->
+
+<!-- --- -->
+
+
+
+<!-- # CLT: big enough sample? -->
+
+<!-- ```{r, echo = F, cache = T, fig.height = 6} -->
+<!-- expand_grid(n = c(3, 10, 20, 30, 100, 1000), -->
+<!--             rep = 1:10000) |>  -->
+<!--   mutate(samp = map(n, rnorm, mean = 10, sd = 3)) -> dat -->
+
+
+<!-- plot_function(dat) -->
+<!-- ``` -->
+
+
+
+<!-- --- -->
