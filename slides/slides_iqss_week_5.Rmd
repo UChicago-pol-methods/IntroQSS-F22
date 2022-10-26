@@ -584,6 +584,21 @@ Fundamentally, it's because independent random deviations usually roughly cancel
 
 ---
 
+class: bg-full
+background-image: url("assets/galton_board.png")
+background-position: center
+background-size: contain
+
+
+# Galton board (quincunx)
+
+
+???
+
+Source: https://youtu.be/3m4bxse2JEQ?t=51
+
+---
+
 
 ```{r, echo = F}
 plot_function <- function(dat, mean_x = 10, sd_x = 3, title = "X is normal"){
