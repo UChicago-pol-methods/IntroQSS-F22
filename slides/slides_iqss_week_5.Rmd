@@ -15,6 +15,7 @@ output:
 ```{r setup, include=FALSE}
 library(tidyverse)
 knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning = F, message = F)
+# options(scipen = 999)
 ```
 
 
@@ -112,19 +113,19 @@ What about when we're studying e.g. OECD countries? Sampling from a *super-popul
 
 --
 
-A&M endorse Angrist's pragmatic view (footnote 7). Bayesian alternative. 
+A&M endorse Angrist's pragmatic view (footnote 7). (There is also the Bayesian alternative.) 
 
-
----
-
-# Sampling and uncertainty
-
-"Uncertainty" in frequentist statistics arises because 
-
-- our estimands are characteristics of the whole population, but
-- we have a finite sample from that population
 
 --
+
+<!-- # Sampling and uncertainty -->
+
+<!-- "Uncertainty" in frequentist statistics arises because  -->
+
+<!-- - our estimands are characteristics of the whole population, but -->
+<!-- - we have a finite sample from that population -->
+
+<!-- -- -->
 
 So we will try to figure out how far our estimate could be from the estimand. This depends on the variance (across samples) of the estimator. 
 
@@ -418,13 +419,17 @@ This means that for a large enough $n$, $\overline{X}$ should be distributed rou
 --
 
 
-**Note**: $V[\overline{X}] = V[X]/n$ is true for any sample size. CLT applies asymptotically (i.e. large $n$).
+**Note**: 
+
+- $E[\overline{X}] = E[X]$ and $V[\overline{X}] = V[X]/n$ are true for any sample size. 
+- The rest of the CLT (i.e. normality) applies asymptotically (i.e. large enough $n$).
 
 ---
 
 # Illustration using above example
 
 ```{r, echo = F, cache = T}
+
 expand_grid(n = c(3, 10, 20, 30, 100, 1000),
             rep = 1:10000) |> 
   mutate(samp = map(n, sample, x = c(1, 2, 2, 3, 5), replace = T),
@@ -457,7 +462,7 @@ where $\epsilon_i \equiv X_i - E[X]$ ("deviations").
 
 --
 
-Note that $\text{E}[\epsilon_i] = \text{E}[X_i] - E[E[X]] = E[X_i] - E[X] = 0$.
+Note that $\text{E}[\epsilon_i] = \text{E}[X_i] - E[E[X]] = E[X] - E[X] = 0$.
 
 --
 
@@ -474,7 +479,9 @@ Given large enough $n$, $|\sum_{i = 1}^n \epsilon_i|$ should be close to zero, w
 
 Suppose you are flipping a coin $1000$ times. How many ways are there to get 
 
-- 1000 heads?
+- 0 heads?
+- 1 head?
+- 2 head
 - 500 heads?
 
 --
@@ -518,7 +525,7 @@ head(nways, 4)
 
 ```{r}
 # for-loop
-nways_2 <- rep(NA, 10001)
+nways_2 <- rep(NA, 1001)
 for(k in ks){
   nways_2[k+1] <- choose(k = k, n = n)
 }
@@ -556,10 +563,10 @@ dat |>
 dat |> 
   mutate(prop = nways_3/sum(nways_3),
          dn = dnorm(x = k, mean = 500, sd = sqrt(1000*.5^2))) |> 
+  filter(k %in% 400:600) |> 
   ggplot(aes(x = k, y = prop)) + 
   geom_point() +
-  geom_line(aes(y = dn), col = "red") + 
-  coord_cartesian(xlim = c(400, 600))
+  geom_line(aes(y = dn), col = "red")
 ```
 
 
@@ -693,7 +700,7 @@ class: inverse, middle, center
 
 
 
-# Plug-in priciple (2)
+# Plug-in principle (2)
 
 **Plug-in principle**: "Write down the feature of the population that we are interested in, and then use the sample analog to estimate it" (A&M, page 116)
 
@@ -704,6 +711,9 @@ class: inverse, middle, center
     - empirical CDF $\hat{F}(x)$ unbiased and consistent for $F(x)$
     - our estimands can be expressed as functions of the CDF $F(x)$
     - for "plug-in estimator", we use $\hat{F}(x)$ instead
+
+--
+
 - In practice
     - to define estimand, we use "population quantities" (e.g. $E[X]$) instead of CDF $F(x)$
     - to get "plug-in" estimate, we use sample quantities (e.g. $\overline{X}$) instead

@@ -44,9 +44,10 @@ Then what is $E [Y | X = x] = \sum_y y f_{Y|X}(y | x)$ at $x = 1$?
 
 ```{r, fig.height = 4.5, echo = F}
 n <- 1000
-p <- tibble(x = runif(n, min = 0, max = 2.75)) |> 
+dat <- tibble(x = runif(n, min = 0, max = 2.75)) |> 
   mutate(mu = 3*x + 8*x^2 - 3*x^3,
-         y = rnorm(n, mean = mu, sd = 3)) |> 
+         y = rnorm(n, mean = mu, sd = 3))
+p <- dat |> 
   ggplot(aes(x = x, y = y)) + 
   geom_point(alpha = .5, size = 2) +
   theme_bw() + 
@@ -202,7 +203,86 @@ If so, by LIE (and SUTVA), you have identified the treatment effect.
 
 # Law of total variance
 
+$$V[Y] = E[V[Y|X]] + V[E[Y|X]]$$
+--
+
+```{r, echo = F}
+p
+```
+
 ---
 
-# Best predictors, BLP
+# Law of total variance (2)
+
+Let's take the data points in `dat` as the population: 
+
+```{r}
+head(dat, 4)
+```
+
+Then: 
+
+```{r}
+dat |> 
+  summarize(var(y), var(y - mu), var(mu))
+```
+
+
+---
+
+# CEF as best predictor
+
+The CEF $E[Y | X]$ is the expectation of $Y$ at each $X$.
+
+--
+
+We already (wk. 3, chap. 2) established that the expectation/mean is the best (in MSE sense) predictor.
+
+--
+
+So CEF is the best possible way to use $X$ to predict $Y$. 
+
+---
+
+# Best *linear* predictor (BLP)
+
+Say we focus on a linear predictor, i.e. a function of the form $\alpha + \beta X$.
+
+--
+
+The best (minimum MSE) predictor satisfies
+
+$$(\alpha, \beta) = \underset{(a,b) \in \mathbb{R}^2}{\arg\min} \, \mathrm{E}\,[\left(Y - (a + bX)\right)^2]$$
+--
+
+The solution (see Theorem 2.2.21) is 
+
+- $\beta = \frac{\textrm{Cov}[X, Y]}{\textrm{V}[X]}$
+- $\alpha = \textrm{E}[Y] - \beta \textrm{E}[X]$ 
+
+--
+
+So we could obtain the BLP from a joint PMF. (See homework.)
+
+---
+
+# BLP predicts CEF
+
+Above, we were looking for best linear predictor (BLP) of $Y$ as function of $X$: 
+
+$$(\alpha, \beta) = \underset{(a,b) \in \mathbb{R}^2}{\arg\min} \, \mathrm{E}\,[\left(Y - (a + bX)\right)^2]$$
+
+--
+
+You get the same answer if you look for the best linear predictor of the CEF $E[Y | X]$, i.e.
+
+$$(\alpha, \beta) = \underset{(a,b) \in \mathbb{R}^2}{\arg\min} \, \mathrm{E}\,[\left(\mathrm{E}[Y|X] - (a + bX)\right)^2]$$
+
+```{r, echo = F, fig.height = 3.5}
+p + 
+  geom_smooth(method = lm)
+```
+
+
+
 
