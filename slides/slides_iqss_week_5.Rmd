@@ -20,8 +20,7 @@ knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning =
 
 
 <!-- conditional expectation before lecture 5. -->
-
-<!-- how does independence ensure that E[Y_i(1) | D_i = 1] =  E[Y_i(1) | D_i = 0] --> 
+<!-- this one was a little long -- pay attention to CLT explanation --> 
 
 
 

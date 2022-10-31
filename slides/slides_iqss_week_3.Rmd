@@ -19,6 +19,7 @@ knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning =
 
 
 <!-- TODO based on 2022 version: add something comparing MSE to mean deviation and MAD --> 
+<!-- also let's put CEF and BLP in this lecture as it was very short, and it was needed for the experiments/causality lecture -->
 
 # Big picture/motivation
 
