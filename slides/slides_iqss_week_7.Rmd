@@ -21,7 +21,7 @@ knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning =
 
 class: inverse, middle, center
 
-# Conditional expectations
+# Conditional expectation function and best linear predictor
 
 
 ---
@@ -110,6 +110,81 @@ Then what is $E [Y | X ]$?
 ```{r, echo = F, fig.height = 4.5}
 p
 ```
+
+
+
+---
+
+# CEF as best predictor
+
+The CEF $E[Y | X]$ is the expectation of $Y$ at each $X$.
+
+--
+
+We already (wk. 3, chap. 2) established that the expectation/mean is the best (in MSE sense) predictor.
+
+--
+
+So CEF is the best possible way to use $X$ to predict $Y$. 
+
+---
+
+# Best *linear* predictor (BLP)
+
+Say we focus on a linear predictor, i.e. a function of the form $\alpha + \beta X$.
+
+--
+
+The best (minimum MSE) predictor satisfies
+
+$$(\alpha, \beta) = \underset{(a,b) \in \mathbb{R}^2}{\arg\min} \, \mathrm{E}\,[\left(Y - (a + bX)\right)^2]$$
+--
+
+The solution (see Theorem 2.2.21) is 
+
+- $\beta = \frac{\textrm{Cov}[X, Y]}{\textrm{V}[X]}$
+- $\alpha = \textrm{E}[Y] - \beta \textrm{E}[X]$ 
+
+--
+
+So we could obtain the BLP from a joint PMF. (See homework.)
+
+---
+
+# BLP predicts CEF
+
+Above, we were looking for best linear predictor (BLP) of $Y$ as function of $X$: 
+
+$$(\alpha, \beta) = \underset{(a,b) \in \mathbb{R}^2}{\arg\min} \, \mathrm{E}\,[\left(Y - (a + bX)\right)^2]$$
+
+--
+
+You get the same answer if you look for the best linear predictor of the CEF $E[Y | X]$, i.e.
+
+$$(\alpha, \beta) = \underset{(a,b) \in \mathbb{R}^2}{\arg\min} \, \mathrm{E}\,[\left(\mathrm{E}[Y|X] - (a + bX)\right)^2]$$
+
+```{r, echo = F, fig.height = 3.5}
+p + 
+  geom_smooth(method = lm)
+```
+
+---
+
+# Multivariate generalizations
+
+So far, just thinking about CEF/BLP of $Y$ using a single $X$ as the only predictor.
+
+All of above extends to multiple $X$s:
+
+- conditional expectation, conditional variance, CEF of $Y$ for many $X$s
+- Given $k$ predictors, BLP involves one intercept and $k$ slopes that minimize MSE
+
+
+---
+
+class: inverse, middle, center
+
+# Law of iterated expectations (LIE)
 
 
 ---
@@ -230,59 +305,477 @@ dat |>
 
 ---
 
-# CEF as best predictor
+class: inverse, middle, center
 
-The CEF $E[Y | X]$ is the expectation of $Y$ at each $X$.
+# Regression estimation
 
---
-
-We already (wk. 3, chap. 2) established that the expectation/mean is the best (in MSE sense) predictor.
-
---
-
-So CEF is the best possible way to use $X$ to predict $Y$. 
 
 ---
 
-# Best *linear* predictor (BLP)
+# OLS as plug-in estimator (1)
 
-Say we focus on a linear predictor, i.e. a function of the form $\alpha + \beta X$.
-
---
-
-The best (minimum MSE) predictor satisfies
-
-$$(\alpha, \beta) = \underset{(a,b) \in \mathbb{R}^2}{\arg\min} \, \mathrm{E}\,[\left(Y - (a + bX)\right)^2]$$
---
-
-The solution (see Theorem 2.2.21) is 
+Recall the coefficients of the bivariate BLP:
 
 - $\beta = \frac{\textrm{Cov}[X, Y]}{\textrm{V}[X]}$
 - $\alpha = \textrm{E}[Y] - \beta \textrm{E}[X]$ 
 
 --
 
-So we could obtain the BLP from a joint PMF. (See homework.)
+Can substitute "sample analogues" of each of these:
+
+- means 
+- (unbiased) sample covariances
+- (unbiased) sample variance 
 
 ---
 
-# BLP predicts CEF
+# OLS as plug-in estimator (2)
 
-Above, we were looking for best linear predictor (BLP) of $Y$ as function of $X$: 
+Backing up a bit, recall that BLP is the linear function of $X$  that minimizes MSE.
 
-$$(\alpha, \beta) = \underset{(a,b) \in \mathbb{R}^2}{\arg\min} \, \mathrm{E}\,[\left(Y - (a + bX)\right)^2]$$
+In multivariate case, 
+
+$$(\beta_0, \beta_1, \ldots \beta_K) = \underset{(b_0, b_1, \ldots, b_K) \in \mathbb{R}^{k+1}}{\arg\min} \, \mathrm{E}\,[\left(Y - (b_0 + b_1 X_{[1]} + b_2 X_{[2]} + \ldots b_K X_{K} )\right)^2]$$
+--
+
+To apply plug-in principle here, minimize **average squared residual** instead of mean squared error: 
+
+$$(\hat{\beta}_0, \hat{\beta}_1, \ldots \hat{\beta}_K) = \underset{(b_0, b_1, \ldots, b_K) \in \mathbb{R}^{k+1}}{\arg\min} \, \frac{1}{n}  \sum_{i=1}^n \,[\left(Y - (b_0 + b_1 X_{[1]} + b_2 X_{[2]} + \ldots b_K X_{K} )\right)^2]$$
+
+(Equivalently, minimize **sum of squared residuals**.)
 
 --
 
-You get the same answer if you look for the best linear predictor of the CEF $E[Y | X]$, i.e.
+"In order to estimate the parameters that minimize the mean squared error, we find the parameters that minimize the mean squared residual." (A&M p. 147)
 
-$$(\alpha, \beta) = \underset{(a,b) \in \mathbb{R}^2}{\arg\min} \, \mathrm{E}\,[\left(\mathrm{E}[Y|X] - (a + bX)\right)^2]$$
+---
 
-```{r, echo = F, fig.height = 3.5}
-p + 
-  geom_smooth(method = lm)
+# Residuals and errors
+
+Both a **residual** and an **error** are the difference between an observed value $Y_i$ and a prediction $\hat{Y}_i$.
+
+--
+
+But the **error** is the difference between $Y_i$ and a prediction made using a *true population predictor*, e.g. the BLP.
+
+The **residual** is the difference between $Y_i$ and a prediction made using an *estimate* of e.g. the BLP for $Y_i$.
+
+(So the residual is the sample analogue of the error, just like the sample mean is the sample analogue of the mean and the sample covariance is the sample analogue of the covariance.)
+
+---
+
+# Residuals and errors (2)
+
+```{r, echo = F, fig.height = 7.5}
+cef_alpha <- 0
+cef_slope <- 2
+n <- 15
+
+set.seed(60641)
+dat <- tibble(x = runif(n)) |> 
+  mutate(y = rnorm(n, mean = cef_alpha + cef_slope*x, sd = .5)) |> 
+  arrange(x)
+
+the_lm <- lm(y ~ x, data = dat)
+
+i <- 15
+j <- 12
+dat |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_point() + 
+  geom_abline(slope = cef_slope, intercept = cef_alpha, col = "red", lwd = 1) + 
+  geom_abline(slope = coef(the_lm)[2], intercept = coef(the_lm)[1], col = "black", lwd = 1) + 
+  geom_text(x = .9, y = 1.9, label = "CEF", col = "red") + 
+  geom_text(x = .9, y = .1 + predict(the_lm, newdata = data.frame(x = .9)), label = "OLS", col = "black") +
+  geom_segment(x = dat$x[i], xend = dat$x[i], y = 2*dat$x[i], yend = dat$y[i], col = "red") + 
+  geom_segment(x = dat$x[j], xend = dat$x[j], y = predict(the_lm, newdata = data.frame(x = dat$x[j])), yend = dat$y[j], col = "black")
+  
+ 
+```
+
+---
+
+# Fitting OLS models
+
+How can we compute the OLS coefficients?
+
+One option: grid method
+
+- lay out a grid of possible coefficient values
+- compute sum/mean of squared residuals for all combinations
+- choose the lowest one
+
+--
+
+```{r, cache = T}
+ssr <- function(intercept, slope, dat){
+  dat |> 
+    mutate(prediction = intercept + slope*x,
+           resid = y - prediction) |> 
+    summarize(sum(resid^2)) |> 
+    as.numeric()
+}
+
+betas <- expand_grid(intercept = seq(-1, 1, by = .025),
+                    slope = seq(0, 4, by = .025))
+                    
+ssrs <- betas |> 
+  mutate(this_ssr = pmap_dbl(betas, ssr, dat = dat)) 
+
+the_min <- ssrs |> 
+  filter(this_ssr == min(this_ssr))
+the_min
+```
+
+---
+
+# Visualizing grid method
+
+```{r, echo = F, cache = T}
+nudge_x <-.05
+nudge_y <-.025
+
+ssrs |> 
+  ggplot(aes(x = intercept, y = slope, z = this_ssr)) + 
+  geom_contour() + 
+  geom_point(x = coef(the_lm)[1], y = coef(the_lm)[2]) + 
+  geom_point(x = 0, y = 2, col = "red") + 
+  labs(x = "Intercept", y = "Slope", title = "Sum of squared residuals by grid method") +
+  geom_text(x = 0 + nudge_x, y = 2 + nudge_y, label = "BLP") + 
+  geom_text(data = the_min, aes(label = "Minimum\nSSR\ngrid point"), nudge_x = nudge_x, nudge_y = nudge_y)
+
+
+```
+
+---
+
+# Fitting OLS models (2)
+
+The classic matrix algebra solution is: 
+
+$$ \mathbf{\hat{\beta}} = \left( \mathbb{X}^T \mathbb{X} \right) ^{-1} \mathbb{X}^T \mathbf{Y}$$
+--
+
+Aronow & Miller go through this (pp. 147-149) but I won't. Basically an optimization problem: 
+
+- express predictors as **regressor matrix** $\mathb{X}$
+- use differentiation to get **first order conditions**
+- solve using linear algebra (get inverse)
+
+--
+
+Implementation of this solution in `R`:
+
+```{r}
+X <- cbind(1, dat$x)
+Y <- dat$y
+solve(t(X)%*%X)%*%(t(X)%*%Y)
+```
+
+---
+
+# Fitting OLS models (3)
+
+In practice we use `lm()` (linear model) in `R`: 
+
+```{r}
+lm(y ~ x, data = dat)
+```
+
+(`estimatr::lm_robust()` useful for robust standard errors.)
+
+???
+
+See http://madrury.github.io/jekyll/update/statistics/2016/07/20/lm-in-R.html for an examination of how `lm()` works. It's not X-prime X inverse X-prime Y! It does involve FORTRAN.
+
+---
+
+# Fitting OLS models (3)
+
+More detailed output via `summary()`:
+
+```{r}
+lm(y ~ x, data = dat) |> summary()
+```
+
+---
+
+# Interpreting OLS coefficients
+
+OLS is estimator of BLP.
+
+--
+
+That could be useful for 
+
+- description if the BLP is a useful summary of the relationship between $Y$ and $X$
+- prediction if the BLP describes the relationship between $Y$ and $X$ in some other data (e.g. future data)
+- causal inference if the treatment effect is identified and the key observable features of the CEF (e.g. $\mathrm{E}\, [Y_i | D_i = 1, X_i = x]$) can be estimated from the OLS coefficients 
+
+--
+
+Very common to use causal language about regression coefficients when it's not really justified: e.g. "the effect of democracy on GDP is 2.12"
+
+--
+
+Better: "the coefficient on democracy is 2.12", "predicted GDP is higher by 2.12 (units?) in democracies than in non-democracies, conditional on these covariates"
+
+
+---
+
+class: inverse, middle, center
+
+# Non-linearities and overfitting
+
+---
+
+# "Linear" regression?
+
+BLP is "linear" in $\mathbf{X}$: 
+
+$$b_0 + b_1 X_{[1]} + b_2 X_{[2]} + \ldots b_K X_{[K]}$$
+
+--
+
+But BLP (and therefore OLS) does not have to be linear in any particular **variable**: if we have a single predictor $X$ and let $X_{[k]} = X^k$, then BLP can be as curvy as you want.
+
+--
+
+Other ways to model non-linear relationships with OLS:
+
+- logarithmic transformations (of $Y$ or $X$)
+- splines
+- kernel methods
+
+---
+
+
+## US presidential election data
+
+Here is a dataset on U.S. presidential elections from 1948 to 2016: 
+
+```{r}
+pres <- read_csv("./../data/pres_data.csv") %>% 
+  filter(year < 2020)
+```
+
+| Variable Name | Description | 
+|-------:|:-----------------------:|
+|`year` | Election year |
+| `deminc` | 1=incumbent is a Democrat |
+| `incvote` | Percent of the two-party vote for the incumbent party |
+|`q2gdp` | Second-quarter change in real GDP in election year |
+| `juneapp` | Net approval of incumbent president in June of election year |
+
+---
+
+
+## Incumbent approval rating and incumbent party vote share 
+
+```{r, fig.height = 6, echo = F}
+vote_app <- pres %>% 
+  ggplot(aes(x = juneapp, y = incvote, label = year)) + 
+  geom_point() + 
+  ggrepel::geom_text_repel(size = 2) 
+vote_app
+```
+
+---
+
+## OLS regression
+
+.pull-left[
+```{r, echo = F}
+vote_app + 
+  geom_smooth(method = lm, se = F)
+```
+]
+
+.pull-right[
+```{r}
+lm(incvote ~ juneapp, 
+   data = pres)
+```
+]
+
+How do we explain/interpret the coefficient on `juneapp`? 
+
+--
+
+Be explicit about units & meaning of variables; avoid causal language unless justified (e.g. by randomization). 
+
+- .red[**Bad:**] "The effect of `juneapp` on `incvote` is .165"
+- .light-green[**Good:**] "A one percentage point increase in presidential approval is associated with a .16 percentage point increase in votes for the incumbent party" **or** "The predicted vote for the incumbent party goes up by .16 percentage points when the approval rating goes up by one percentage point"
+
+---
+
+## Adding polynomials three ways
+
+```{r}
+# add variables to data
+pres2 <- pres |> 
+  mutate(juneapp_squared = juneapp^2,
+         juneapp_cubed = juneapp^3)
+lm(incvote ~ juneapp + juneapp_squared + juneapp_cubed, data = pres2)
+```
+
+---
+
+## Adding polynomials three ways
+
+```{r}
+# add variables to formula using I()
+lm(incvote ~ juneapp + I(juneapp^2) + I(juneapp^3), data = pres)
 ```
 
 
+---
+
+## Adding polynomials three ways
+
+```{r}
+# poly() function
+lm(incvote ~ poly(juneapp, degree = 3, raw = T), data = pres)
+```
+
+---
+
+# Plotting polynomial relationships
+
+```{r}
+pres %>% 
+  ggplot(aes(x = juneapp, y = incvote)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F)
+```
+
+---
+
+# Plotting polynomial relationships
+
+```{r}
+pres %>% 
+  ggplot(aes(x = juneapp, y = incvote)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F,   #<<
+              formula = y ~ poly(x, 3)) #<<
+```
+
+
+---
+
+# Plotting polynomial relationships
+
+```{r, fig.height = 4}
+pres %>% 
+  ggplot(aes(x = juneapp, y = incvote)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F,
+              formula = y ~ poly(x, 12)) + #<<
+  coord_cartesian(ylim = c(45, 62))
+```
+
+---
+
+# Overfitting
+
+As you add more polynomials, you reduce the mean squared residual. But you may be increasing mean squared *error* (getting a worse approximation of the CEF) due to **overfitting**.
+
+--
+
+Suppose again that this is the CEF:
+
+```{r, echo = F}
+p
+```
+
+
+---
+
+# Overfitting (2)
+
+As we increase the order of the polynomial, what change will happen in 
+
+- mean squared residual (in sample)
+- mean squared error (in population)
+
+```{r functions, echo = F}
+draw_dat <- function(n = 15){
+  tibble(x = runif(n, min = 0, max = 2.75)) |> 
+    mutate(mu = 3*x + 8*x^2 - 3*x^3, y = rnorm(n, mean = mu, sd = 3))
+}
+
+get_mse <- function(dat, mod){
+  dat |> 
+    mutate(resid = dat$y - predict(mod, newdata = dat)) |> 
+    summarize(mean(resid^2)) |> 
+    as.numeric()  
+}
+```
+
+
+```{r, echo = F}
+cef_dat <- tibble(x = seq(0, 2.75, by = .01)) |> 
+  mutate(mu = 3*x + 8*x^2 - 3*x^3)
+
+plot_dat <- draw_dat(n = 25)
+
+base_plot <- plot_dat |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_point() +
+  geom_line(data = cef_dat, aes(y = mu), col = "red", lwd = 2) + 
+  geom_text(x = 0, y = 1, col = "red", label = "CEF") + 
+  coord_cartesian(ylim = c(-5, 20))
+```
+
+.pull-left[
+```{r, echo = F, fig.height = 5}
+base_plot +
+  geom_smooth(method = "lm", se = F) + 
+  labs(title = "Linear fit (polynomial order = 1)")
+```
+]
+
+.pull-right[
+```{r, echo = F, fig.height = 5}
+base_plot +
+  geom_smooth(method = "lm", se = F, formula = y ~ poly(x, 3)) +
+  labs(title = "Cubic fit (polynomial order = 3)")
+```
+]
+
+
+---
+
+# Overfitting (2)
+
+
+```{r, echo = F, cache = T}
+big_dat <- draw_dat(n = 15000)
+mod <- lm(y ~ x, data = dat)
+results <- expand_grid(k = c(1, 2, 3, 4, 5),
+            rep = 1:200,
+            n = c(15, 50, 100, 500)) |> 
+  mutate(data = map(n, draw_dat),
+         mod = map2(k, data, ~ lm(y ~ poly(x, .x), data = .y)),
+         mse_in_sample = map2_dbl(data, mod, get_mse),
+         mse_out_of_sample = map_dbl(mod, get_mse, dat = big_dat)) 
+```
+
+```{r, echo = F, fig.height = 7}
+results |> 
+  pivot_longer(cols = contains("sample"), names_prefix = "mse_") |> 
+  group_by(k, n, name) |> 
+  summarize(value = mean(value)) |> 
+  mutate(name = ifelse(name == "in_sample", "Mean squared residual\n(in sample)", "Mean squared error\n(in population)"),
+         samp_size = factor(str_c("n = ", n)),
+         samp_size = fct_reorder(samp_size, n)) |> 
+  ggplot(aes(x = k, y = value, col = name)) + 
+  geom_line(lwd = 1) + 
+  coord_cartesian(ylim = c(0,30)) + 
+  facet_wrap(vars(samp_size)) + 
+  labs(x = "Order of polynomial", y = "Value", col = "") + 
+  scale_color_manual(values = c("red", "black"))
+```
 
 
