@@ -431,7 +431,7 @@ the_min
 
 # Visualizing grid method
 
-```{r, echo = F, cache = T}
+```{r, echo = F, cache = T, fig.height = 7}
 nudge_x <-.05
 nudge_y <-.025
 
@@ -777,5 +777,65 @@ results |>
   labs(x = "Order of polynomial", y = "Value", col = "") + 
   scale_color_manual(values = c("red", "black"))
 ```
+
+---
+
+# Interactions
+
+Often the relationship between $Y$ and $X_1$ might depend on $X_2$.
+
+An example: maybe the relationship between GDP growth and incumbent party vote share in the US depends on whether the incumbent party controls the House and Senate.
+
+--
+
+```{r, echo = F}
+pres |> 
+  mutate(demhouse = as.integer(year %in% c(1950:1992, 2008)),
+         demsen = as.integer(year %in% c(1950:1980, 1988:1994, 2002, 2008:2014)),
+         demsum = demhouse + demsen + deminc,
+         unified = ifelse(demsum == 3 | demsum == 0, "Unified government", "Not unified government")) -> pres_dat2
+```
+
+```{r, fig.height = 3}
+pres_dat2 |> 
+  ggplot(aes(x = q2gdp, y = incvote, col = unified)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F) + 
+  scale_color_manual(values = c("red", "darkgreen")) + 
+  labs(col = "")
+```
+
+---
+
+# Interactions in OLS: implementation
+
+To implement an interaction between `q2gdp` and `unified`: 
+
+```{r}
+lm(incvote ~ q2gdp*unified, data = pres_dat2)
+```
+
+What is the predicted `incvote` if
+
+- `q2gdp` is 0 and not unified government?
+- `q2gdp` is 1 and not unified government?
+- `q2gdp` is 0 and unified government?
+- `q2gdp` is 1 and unified government?
+
+---
+
+# Interactions: implementation (2)
+
+Another approach:
+
+```{r}
+pres_dat3 <- pres_dat2 |> 
+  mutate(interaction = q2gdp*as.integer(unified == "Unified government"))
+lm(incvote ~ q2gdp + unified + interaction, data = pres_dat3)
+```
+
+--
+
+Almost always, you want to include both the "main effects" and the interaction -- the `q2gdp*unified` syntax does that by default.
 
 
