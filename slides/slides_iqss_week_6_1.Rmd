@@ -37,7 +37,7 @@ options(width = 60)
 # }
 ```
 
----
+
 # Housekeeping
 
 - midterms
