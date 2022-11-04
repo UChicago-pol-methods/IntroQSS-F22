@@ -1,0 +1,960 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 6. Inference (1) pt. 1"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+      countIncrementalSlides: false
+
+---
+exclude: true
+# Estimation
+
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+set.seed(60637)
+options(width = 60)
+```
+
+```{css, echo=FALSE}
+.small-output .remark-code{
+  font-size: small;
+}
+
+.white { color: white; }
+.red { color: red; }
+.blue { color: blue; }
+
+# .show-only-last-code-result pre + pre:not(:last-of-type) code[class="remark-code"] {
+#     display: none;
+# }
+```
+
+---
+# Housekeeping
+
+- midterms
+- final presentations
+
+
+
+---
+
+class: inverse, middle, center
+
+# Randomization inference: inference when treatment is random
+
+---
+
+Gerber & Green example adapted from: 
+
+Chattopadhyay, R., & Duflo, E. (2004). Women as policy makers: Evidence from a randomized policy experiment in India. *Econometrica*, 72(5), 1409-1443.
+
+---
+
+
+
+Gerber Green example:
+
+- Population: 7 villages
+- Treatment: $D= 1$ if female-headed council, $D=0$ if male
+- Outcome: Budget allocation to sanitation
+
+
+What we see:
+
+|             | $Y_i(0)$ | $Y_i(1)$  | $D_i$ | $Y_i$ | $\tau_i^0$ |
+|-------------|----------|-----------|-------|-------|------------|
+| Village 1   | .red[?]  | 15        | 1     | 15    | .red[?]    |
+| Village 2   | 15       | .red[?]   | 0     | 15    | .red[?]    |
+| Village 3   | 20       | .red[?]   | 0     | 20    | .red[?]    |
+| Village 4   | 20       | .red[?]   | 0     | 20    | .red[?]    |
+| Village 5   | 10       | .red[?]   | 0     | 10    | .red[?]    |
+| Village 6   | 15       | .red[?]   | 0     | 15    | .red[?]    |
+| Village 7   | .red[?]  | 30        | 1     | 30    | .red[?]    |
+|.white[**Average**] | .white[**16**] |  .white[**22.5**] | | |  .white[**6.5**]   |
+
+
+---
+
+The population is fixed; the only thing that is random is how treatment is assigned. 
+
+---
+
+
+
+
+We used the difference in means estimator previously to get an estimate of the average treatment effect over this population of 7 villages, $\textrm{E}[\tau_i]$. 
+
+--
+
+|             | $Y_i(0)$ | $Y_i(1)$  | $D_i$ | $Y_i$ | $\tau_i^0$ |
+|-------------|----------|-----------|-------|-------|------------|
+| Village 1   | .red[?]  | 15        | 1     | 15    | .red[?]    |
+| Village 2   | 15       | .red[?]   | 0     | 15    | .red[?]    |
+| Village 3   | 20       | .red[?]   | 0     | 20    | .red[?]    |
+| Village 4   | 20       | .red[?]   | 0     | 20    | .red[?]    |
+| Village 5   | 10       | .red[?]   | 0     | 10    | .red[?]    |
+| Village 6   | 15       | .red[?]   | 0     | 15    | .red[?]    |
+| Village 7   | .red[?]  | 30        | 1     | 30    | .red[?]    |
+|**Average**  |  **16**  | **22.5**  |       |       |.white[**6.5**]   |
+
+$$
+\hat\tau_{DM} = \frac{\sum_i^n Y_i D_i}{\sum_i^n D_i} - \frac{\sum_i^n Y_i (1-D_i)}{\sum_i^n (1-D_i)}
+$$
+--
+
+$$
+= 22.5-16 = 6.5
+$$
+
+---
+
+- But what can we say about our uncertainty about this estimate? The number of observations in each group is pretty small. 
+
+--
+
+- Is the estimate meaningfully different from zero?
+
+--
+
+- How likely would we be to see an effect this size just by chance?
+
+
+---
+
+One way to think about this is to assume the ITE for all individuals is exactly zero. Then, no matter how we randomized treatment assignment, we would see the same $Y_i$s. 
+
+--
+
+We can then say how often we would see a treatment effect estimate of this size just by chance, under the assumption that individual treatment effects were actually zero. 
+
+---
+
+Assuming all treatment effects are exactly zero is called the **sharp null hypothesis of no effect**. 
+--
+Also referred to as "Fisher's null" after Sir Ronald Aylmer Fisher (1890-1962). 
+
+
+```{r pdb_fig, echo=FALSE, out.width = "50%", fig.align="center"}
+knitr::include_graphics('assets/Youngronaldfisher2.jpeg')
+```
+
+
+---
+
+We might write the sharp null hypothesis this way:
+
+$$
+H_0: \tau_i = 0, \text{ for all } i \text{ in our pop.}
+$$
+
+--
+
+This implies that potential outcomes are identical under treatment and control, for all individuals. 
+
+$$
+Y_i(0) = Y_i(1)
+$$
+
+
+---
+
+
+Then we can fill in this table $\dots$
+
+|           | $Y_i(0)$ | $Y_i(1)$ | $D_i$ | $Y_i$ | $\tau_i^0$ |
+|-----------|----------|----------|-------|-------|------------|
+| Village 1 | .red[?]  | 15       | 1     | 15    | .red[?]    |
+| Village 2 | 15       | .red[?]  | 0     | 15    | .red[?]    |
+| Village 3 | 20       | .red[?]  | 0     | 20    | .red[?]    |
+| Village 4 | 20       | .red[?]  | 0     | 20    | .red[?]    |
+| Village 5 | 10       | .red[?]  | 0     | 10    | .red[?]    |
+| Village 6 | 15       | .red[?]  | 0     | 15    | .red[?]    |
+| Village 7 | .red[?]  | 30       | 1     | 30    | .red[?]    |
+
+
+
+---
+$\dots$ as this:
+
+|             | $Y_i(0)$ | $Y_i(1)$  | $D_i$ | $Y_i$ | $\tau_i^0$ |
+|-------------|----------|-----------|-------|-------|------------|
+| Village 1   | .red[15] | 15        | 1     | 15    | .red[0]    |
+| Village 2   | 15       | .red[15]  | 0     | 15    | .red[0]    |
+| Village 3   | 20       | .red[20]  | 0     | 20    | .red[0]    |
+| Village 4   | 20       | .red[20]  | 0     | 20    | .red[0]    |
+| Village 5   | 10       | .red[10]  | 0     | 10    | .red[0]    |
+| Village 6   | 15       | .red[15]  | 0     | 15    | .red[0]    |
+| Village 7   | .red[30] | 30        | 1     | 30    | .red[0]    |
+
+
+
+---
+We can re-run the randomization, and the potential outcomes and observed $Y_i$ will not change, but the treatment effect estimate will. 
+
+|             | $Y_i(0)$ | $Y_i(1)$  | $D_i$    | $Y_i$ | $\tau_i^0$ |
+|-------------|----------|-----------|----------|-------|------------|
+| Village 1   | .red[15] | 15        | .blue[0] | 15    | .red[0]    |
+| Village 2   | 15       | .red[15]  | .blue[1] | 15    | .red[0]    |
+| Village 3   | 20       | .red[20]  | .blue[0] | 20    | .red[0]    |
+| Village 4   | 20       | .red[20]  | .blue[0] | 20    | .red[0]    |
+| Village 5   | 10       | .red[10]  | .blue[0] | 10    | .red[0]    |
+| Village 6   | 15       | .red[15]  | .blue[1] | 15    | .red[0]    |
+| Village 7   | .red[30] | 30        | .blue[0] | 30    | .red[0]    |
+--
+
+
+$\frac{\sum_i^n Y_i D_i}{\sum_i^n D_i} = \color{blue}{15}$
+
+$\frac{\sum_i^n Y_i (1-D_i)}{\sum_i^n (1-D_i)} = \color{blue}{19}$
+
+$$
+\hat{\tau}_{DM} = \color{blue}{-4}
+$$
+
+---
+We can re-run the randomization, and the potential outcomes and observed $Y_i$ will not change, but the treatment effect estimate will. 
+
+|             | $Y_i(0)$ | $Y_i(1)$  | $D_i$    | $Y_i$ | $\tau_i^0$ |
+|-------------|----------|-----------|----------|-------|------------|
+| Village 1   | .red[15] | 15        | .blue[0] | 15    | .red[0]    |
+| Village 2   | 15       | .red[15]  | .blue[0] | 15    | .red[0]    |
+| Village 3   | 20       | .red[20]  | .blue[1] | 20    | .red[0]    |
+| Village 4   | 20       | .red[20]  | .blue[0] | 20    | .red[0]    |
+| Village 5   | 10       | .red[10]  | .blue[0] | 10    | .red[0]    |
+| Village 6   | 15       | .red[15]  | .blue[0] | 15    | .red[0]    |
+| Village 7   | .red[30] | 30        | .blue[1] | 30    | .red[0]    |
+
+
+
+$\frac{\sum_i^n Y_i D_i}{\sum_i^n D_i} = \color{blue}{25}$
+
+$\frac{\sum_i^n Y_i (1-D_i)}{\sum_i^n (1-D_i)} = \color{blue}{15}$
+
+$$
+\hat{\tau}_{DM} = \color{blue}{10}
+$$
+
+---
+We can re-run the randomization, and the potential outcomes and observed $Y_i$ will not change, but the treatment effect estimate will. 
+
+|             | $Y_i(0)$ | $Y_i(1)$  | $D_i$    | $Y_i$ | $\tau_i^0$ |
+|-------------|----------|-----------|----------|-------|------------|
+| Village 1   | .red[15] | 15        | .blue[0] | 15    | .red[0]    |
+| Village 2   | 15       | .red[15]  | .blue[0] | 15    | .red[0]    |
+| Village 3   | 20       | .red[20]  | .blue[1] | 20    | .red[0]    |
+| Village 4   | 20       | .red[20]  | .blue[1] | 20    | .red[0]    |
+| Village 5   | 10       | .red[10]  | .blue[0] | 10    | .red[0]    |
+| Village 6   | 15       | .red[15]  | .blue[0] | 15    | .red[0]    |
+| Village 7   | .red[30] | 30        | .blue[0] | 30    | .red[0]    |
+
+
+
+$\frac{\sum_i^n Y_i D_i}{\sum_i^n D_i} = \color{blue}{20}$
+
+$\frac{\sum_i^n Y_i (1-D_i)}{\sum_i^n (1-D_i)} = \color{blue}{17}$
+
+$$
+\hat{\tau}_{DM} = \color{blue}{3}
+$$
+
+---
+Because we know how treatment was assigned, we know all the possible ways treatment could be assigned across the villages, and the exact probability. 
+
+--
+
+There are seven villages, and we'll say that exactly two will get treatment. Each village is assigned treatment with equal probability. 
+
+---
+
+We can use the package `ri` to find the *exact* distribution of $\hat\tau_{DM}$ under the sharp null.
+
+```{r, eval = FALSE}
+# install.packages('ri')
+library(ri)
+
+
+```
+
+```{r, echo = FALSE}
+source('assets/ri/desmat.sanitize.R')
+source('assets/ri/gendist.R')
+source('assets/ri/genperms.R')
+source('assets/ri/estate.R')
+source('assets/ri/dispdist.R')
+
+```
+
+
+
+---
+
+Our real data:
+
+```{r}
+
+df <- tibble(
+  # our initial treatment vector
+  D = c(1, 0, 0, 0, 0, 0, 1),
+  # our initial response vector
+  Y = c(15, 15, 20, 20, 10, 15, 30),
+  # treatment assignment probability
+  probs = rep(2/7, 7)
+)
+
+df
+```
+
+
+---
+
+And our difference in means estimate of the average treatment effect under the real data:
+
+```{r}
+dm_hat <- df |> 
+  group_by(D) |>
+  summarize(mean = mean(Y)) |>
+  pivot_wider(names_from = D, values_from = mean) |>
+  summarise(diff = `1` -`0`) |> 
+  pull(diff)
+
+dm_hat
+
+```
+
+
+---
+
+Adding in the hypothetical data
+
+```{r}
+
+df <- df |> 
+  mutate(
+    # Y(0) under the sharp null of no effect
+    Y0 = Y,
+    # Y(1) under the sharp null of no effect
+    Y1 = Y)
+
+df
+```
+
+
+---
+
+Consider all the ways treatment could be assigned:
+
+```{r}
+(perms <- genperms(df |> pull(D)))
+```
+
+---
+Then generate the sampling distribution of the ATE estimate under the sharp null of no effect. 
+
+```{r}
+
+Ys_null <- list(
+  Y0 = df |> pull(Y0),
+  Y1 = df |> pull(Y1)
+)
+
+dm <- gendist(Ys_null,
+              perms, 
+              prob=df$probs)
+dm
+
+null_dist <- tibble(dm)
+
+```
+
+
+---
+
+The mean under our null distribution is exactly zero. Why?
+
+```{r}
+null_dist |> 
+  summarize(mean(dm))
+```
+
+
+---
+
+```{r, fig.height=4, fig.width = 5, fig.align = "center", echo=FALSE}
+
+gg_bins <- null_dist |> 
+  group_by(dm) |> 
+  count(name = 'Relative frequency') |> 
+  mutate(col = abs(dm) >= dm_hat)
+
+ggplot(gg_bins, aes(x = dm, y = `Relative frequency`)) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = 'red')
+
+```
+
+--
+
+```{r}
+prop.table(table(null_dist))
+```
+
+--
+
+```{r}
+(pval <- mean(abs(null_dist) >= dm_hat))
+```
+
+---
+```{r, fig.height=4, fig.width = 5, fig.align = "center", echo=FALSE}
+ggplot(gg_bins, aes(x = dm, y = `Relative frequency`, fill = col)) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = 'red') + 
+  scale_fill_manual(values=c("grey35", "#619CFF")) +
+  theme(legend.position = 'none')
+```
+
+
+```{r}
+(pval <- mean(abs(null_dist) >= dm_hat))
+```
+
+--
+
+Under the null distribution, if we were to re-randomize the experiment many times, we would see a value *at least as extreme as our estimate* `r round(pval*100,2)`% of the time. 
+--
+
+That doesn't seem **that** unlikely—more than one in three times, we would see an estimate as large as we got, just by chance. 
+
+---
+
+`ri` produces the same exact p-value. 
+
+```{r}
+
+dispdist(distout = dm, 
+         ate = dm_hat, 
+         display.plot = FALSE)$two.tailed.p.value.abs
+```
+
+
+---
+Why is this test called an "exact" test?
+
+--
+
+Because we know the *exact* distribution of our estimate under the specified null. We do not have to approximate the distribution. 
+--
+This will not be true for all of our hypothesis testing...
+
+---
+
+## Hypotheses
+
+
+We framed our null hypothesis as below:
+
+$$
+H_0: \tau_i = 0, \text{ for all } i \text{ in our pop.}
+$$
+
+--
+
+Implicitly, the alternative is that for some individual(s), the treatment effect is non-zero. 
+
+$$
+H_A: \tau_i \neq 0, \text{ for some } i \text{ in our pop.}
+$$
+
+--
+
+In our case, we did not find strong evidence to reject the null hypothesis, i.e., our data is consistent with what we would see if the null hypothesis were true.
+
+--
+
+Note that we do NOT say that we reject or accept the alternative hypothesis. 
+
+--
+
+We can only say that our results were not consistent with or were consistent with what we would have seen under the null—i.e., we have evidence to reject or fail to reject the null. 
+
+
+---
+## Test statistics
+
+Our difference in means estimator is a *statistic*. Statistics are functions of the data we observe.
+--
+
+
+$$
+T_n = h(X_1, \dots, X_n)
+$$
+
+--
+
+This should look a lot like our definiton of *estimators*. Estimators are a class of statistics that we use to approximate specific estimands.
+
+--
+
+*Test statistics* are the specific statistics we use to test a hypothesis. 
+
+--
+
+Here, our hypothesis was about the *individual treatment effect*. 
+
+
+
+---
+
+## Distributions of Estimators
+
+Our difference in means estimator is a function of the data we observe. 
+
+--
+
+Because there is randomness in the data, here, due to random assignment of treatment, the estimator is also a random variable. 
+
+--
+
+Just like other random variables have distributions to describe them, estimators also have distributions. 
+
+--
+
+We don't know the *true* distribution of the difference in means estimator, for the same reason that we don't know individual treatment effects.
+
+--
+.red[(FPoCI!)]
+
+--
+
+But we DO know what the distribution would be under the null. 
+
+
+---
+
+Note that we are conducting inference with respect to:
+
+--
+- a defined population
+
+--
+- a defined treatment 
+
+--
+- a defined outcome
+
+--
+- a known treatment assignment mechanism
+
+--
+- a given estimating procedure
+
+--
+
+We could have considered the distribution of a different test statistic under the null. 
+
+--
+
+For example, the difference between one single observation under treatment, and one single observation under control. 
+
+--
+
+We can talk about the distributions of any functions of the data under our hypothetical null. This estimator will also be unbiased (if our selection and randomization are random), but it may not be as informative to us as if we used all the data. 
+
+
+---
+
+How do we determine what the null is?
+
+--
+
+We formalize our hypotheses in terms of the effect we are trying to find in the data. Is there a treatment effect? Is there a difference between these two groups?
+
+--
+
+The null is (often, but not always) the case when there is no effect, or no difference. 
+
+--
+
+We can imagine other kinds of hypotheses, for example that effects are bounded away from zero and positive, or exactly .2. And we can characterize the distribution of our test statistic under the null. 
+
+
+---
+
+Is the sharp null of no individual level effects plausible in this setting?
+
+--
+
+Does it matter?
+
+---
+
+
+# Analyzing an experiment
+
+
+Considering some real data, we'll look at
+
+Butler, D. M., & Broockman, D. E. (2011). *Do politicians racially discriminate against constituents? A field experiment on state legislators.* AJPS. 
+
+--
+
+Data is available at the Yale ISPS data archive: [isps.yale.edu/research/data](isps.yale.edu/research/data)
+
+---
+
+```{r, message=FALSE}
+
+file <- '../data/Butler_Broockman_AJPS_2011_public.csv'
+df <- read_csv(file)
+
+```
+
+
+```{r, echo = FALSE}
+df
+```
+
+---
+
+Recall that treatment is 1 if the sender was DeShawn Jackson, and 0 if Jake Mueller. 
+
+```{r}
+df |> 
+  group_by(treat_deshawn) |> 
+  summarize(n())
+```
+
+--
+
+The primary outcome is whether legislators replied at all. 
+
+```{r}
+df |> 
+  group_by(reply_atall) |> 
+  summarize(n())
+```
+
+---
+
+We're going to manipulate our data so it takes the format $Y$ ~ $D$. 
+
+
+```{r}
+df <- df |> 
+  mutate(D = treat_deshawn,
+         Y = reply_atall)
+```
+
+--
+
+To get the difference-in-means estimate of the ATE, 
+
+```{r}
+dm_hat <- df |> 
+  group_by(D) |>
+  summarize(mean = mean(Y)) |>
+  pivot_wider(names_from = D, values_from = mean) |>
+  summarise(diff = `1` -`0`) |> 
+  pull(diff)
+```
+
+--
+
+```{r}
+dm_hat
+```
+
+
+Legislators were 1.7 percentage points less likely to reply to an email if the sender was identified as DeShawn Jackson as compared to Jake Mueller. 
+
+---
+
+Note that again, the population that we're taking inference over is legislators—all of whom are included in our experiment. We're not assuming we're sampling from some other distribution. The only source of randomness is how treatment is assigned. 
+
+---
+
+There are ${4859 \choose 2428}$ different ways treatment could be assigned—this is too many to generate the whole matrix of permutations and get the *exact* sampling distribution. 
+
+Instead, we'll simulate the sampling process many times to find the *approximate* sampling distribution of $\hat\tau_{DM}$ under the sharp null.
+
+--
+
+```{r}
+# randomization inference function
+my_ri <- function(df){
+  ri_out <- df |>
+    # create a new column newD that samples from D
+    mutate(newD = sample(D)) |> 
+    # difference in means estimate under newD
+    group_by(newD) |>
+    summarize(mean = mean(Y)) |>
+    pivot_wider(names_from = newD, values_from = mean) |>
+    summarise(diff = `1` -`0`) |> 
+    pull(diff) # note this line!
+  
+  return(ri_out)
+}
+```
+
+---
+
+
+```{r}
+my_ri(df)
+```
+
+--
+
+```{r}
+my_ri(df)
+```
+
+
+---
+
+We can do this many times to find the distribution of $\hat\tau_{DM}$ under the sharp null. 
+--
+[Discuss use of `map()`]
+
+
+```{r}
+n_iter <- 1000
+
+null_dist <- map_dbl(1:n_iter,
+                     ~ my_ri(df))
+
+null_dist
+```
+
+---
+
+```{r, fig.height=4, fig.width = 5, fig.align = "center", echo=FALSE}
+
+gg_bins <- tibble(dm = null_dist) |> 
+  count(bins = cut(dm, breaks = 50)) |> 
+  mutate(bin_min = as.numeric(gsub(".?(-?[0-9]+[.]+[0-9]+).*", "\\1", bins)),
+         bin_max = as.numeric(gsub(".*,(-?[0-9]+[.]+[0-9]+)]$", "\\1", bins)),
+         bin_mid = (bin_max - bin_min)/2 + bin_min,
+         col = abs(bin_min) >= abs(dm_hat)) 
+
+
+ggplot(gg_bins, aes(x = bin_mid, y = n)) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = 'red')
+```
+
+--
+
+
+
+```{r}
+(pval <- mean(abs(null_dist) >= abs(dm_hat)))
+```
+
+---
+
+
+```{r, fig.height=4, fig.width = 5, fig.align = "center", echo=FALSE}
+
+ggplot(gg_bins, aes(x = bin_mid, y = n, fill = col)) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = 'red') + 
+  scale_fill_manual(values=c("grey35", "#619CFF")) +
+  theme(legend.position = 'none')
+
+```
+
+
+
+```{r}
+(pval <- mean(abs(null_dist) >= abs(dm_hat)))
+```
+
+---
+
+The types of hypotheses we've considered are two-sided hypotheses: we look at effects in either direction from zero. 
+
+--
+
+$$
+H_0: \tau_i = 0, \text{ for all } i \text{ in our pop.}
+$$
+
+
+$$
+H_A: \tau_i \neq 0, \text{ for some } i \text{ in our pop.}
+$$
+
+---
+
+We can also consider other alternative hypotheses. For example, the hypothesis that treatment effects are less than zero. This is called a one-sided hypothesis. 
+
+
+--
+
+$$
+H_0: \tau_i = 0, \text{ for all } i \text{ in our pop.}
+$$
+
+
+$$
+H_A: \tau_i < 0, \text{ for some } i \text{ in our pop.}
+$$
+
+---
+The alternative hypothesis that we consider is a consequence of the social science theory we're trying to test. 
+
+--
+
+Here, we want to see if legislators are *less likely* to respond to a constituent named DeShawn Jackson, as compared to Jake Mueller. 
+
+--
+
+When we test a one-sided hypothesis, we want to check how likely we would be to observe statistics at least as large as the test statistic that we actually observe, in the direction of our hypothesis. 
+
+---
+
+
+```{r, fig.height=4, fig.width = 5, fig.align = "center", echo=FALSE}
+
+gg_bins <- gg_bins |> 
+  mutate(col2 = bin_min <= dm_hat)
+
+ggplot(gg_bins, aes(x = bin_mid, y = n)) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = 'red') 
+
+```
+
+
+
+```{r}
+(pval <- mean(null_dist <= dm_hat))
+
+
+```
+
+
+---
+
+
+```{r, fig.height=4, fig.width = 5, fig.align = "center", echo=FALSE}
+
+gg_bins <- gg_bins |> 
+  mutate(col2 = bin_mid <= dm_hat)
+
+ggplot(gg_bins, aes(x = bin_mid, y = n, fill = col2)) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = 'red') + 
+  scale_fill_manual(values=c("grey35", "#619CFF")) +
+  theme(legend.position = 'none')
+
+```
+
+
+
+```{r}
+(pval <- mean(null_dist <= dm_hat))
+
+
+```
+
+---
+
+## P-values
+
+Suppose $\hat{\theta}$ is the general form for an estimate produced by our estimator, and $\hat{\theta}^*$ is the value we have actually observed. 
+
+---
+
+## P-values
+
+- A lower one-tailed p-value under the null hypothesis is 
+
+$$
+p = \textrm{P}\_0[\hat{\theta} \le \hat{\theta}^*]
+$$
+
+i.e., the probability *under the null distribution* that we would see an estimate of $\hat{\theta}$ that is less than or equal to what we saw from the data. 
+
+--
+
+```{r, fig.height=4, fig.width = 5, fig.align = "center", echo=FALSE}
+
+ggplot(gg_bins, aes(x = bin_mid, y = n, fill = col2)) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = 'red') + 
+  scale_fill_manual(values=c("grey35", "#619CFF")) +
+  theme(legend.position = 'none')
+
+```
+
+---
+
+## P-values
+
+
+
+- An upper one-tailed p-value under the null hypothesis is 
+
+$$
+p = \textrm{P}\_0[\hat{\theta} \ge \hat{\theta}^*]
+$$
+
+i.e., the probability *under the null distribution* that we would see an estimate of $\hat{\theta}$ that is greater than or equal to what we saw from the data. 
+
+--
+
+```{r, fig.height=4, fig.width = 5, fig.align = "center", echo=FALSE}
+
+gg_bins <- gg_bins |> 
+  mutate(col3 = bin_min >= dm_hat)
+
+ggplot(gg_bins, aes(x = bin_mid, y = n, fill = col3)) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = 'red') + 
+  scale_fill_manual(values=c("grey35", "#619CFF")) +
+  theme(legend.position = 'none')
+
+```
+
+---
+
+## P-values
+
+- A two-tailed p-value under the null hypothesis is 
+
+$$
+p = \textrm{P}\_0[|\hat{\theta}| \ge |\hat{\theta}^*|]
+$$
+
+i.e., the probability *under the null distribution* that we would see an estimate of $\hat{\theta}$ as or more extreme as what we saw from the data. 
+
+--
+
+```{r, fig.height=4, fig.width = 5, fig.align = "center", echo=FALSE}
+
+
+ggplot(gg_bins, aes(x = bin_mid, y = n, fill = col)) +
+  geom_col() +
+  geom_vline(xintercept = 0, color = 'red') + 
+  scale_fill_manual(values=c("grey35", "#619CFF")) +
+  theme(legend.position = 'none')
+
+```
+
+
+
+
+```{r knit, echo=FALSE, message=FALSE, warning=FALSE, eval=FALSE}
+knitr::purl("slides_71.Rmd")
+```
