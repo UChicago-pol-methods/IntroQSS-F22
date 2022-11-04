@@ -1,0 +1,110 @@
+---
+title: "Lab 7"
+date: "11/4/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, inlcude = FALSE}
+library(tidyverse)
+```
+
+## purrr and maps
+
+You have now seen `map` functions a few times in the lecture slides. Today, we'll talk in more detail about what they are and what they do. 
+
+There are several variations of `map` that behave differently in terms of what arguments they require and what they return. They all come from the `purrr` package, which is included in the tidyverse. Before we go any further, take a look at the documentation for map:
+
+```{r, eval = FALSE}
+?map
+```
+
+"Applying a function to each element of a list" is a type of *iteration* that is very powerful working with data. If you have programmed in other languages, you probably used for loops to accomplish tasks that require iteration (and you can use for loops within `R`). 
+
+What arguments do we *have* to specify in a call of `map`? What form can the `.f` argument take?
+
+**YOUR ANSWER HERE** 
+
+## ~ and . notation in purrr
+
+If you look closely at the documentation, you'll notice some syntax we haven't used before: `~` and `.` in the formula of a `map` call. As discussed, you can use an existing function inside map, or a formula. If you use a formula, then you should lead with `~`. This will transform your formula into an anonymous function so that map can alter the values inside the formula as it iterates through the items in your list or vector. Otherwise the formula would execute immediately. To see why this is important, run the following code line by line (don't run the whole chunk at once):
+
+```{r, eval = FALSE}
+vec_1 <- 1:25
+
+map_dbl(vec_1, 
+          ~ ./2)
+
+map_dbl(vec_1,
+          ./2)
+```
+
+It works correctly in the first case, but not the second. The error says that "object `.` not found." This is because the formula wasn't converted to a function and it was evaluated immediately instead of iterating over the elements of the vector and `.` isn't defined. 
+
+Hopefully you have been able to decipher what role `.` is playing as well. If you look at the output of `map_dbl(vec_1, ~ ./2)`, you should notice that each element in the resulting vector contains each element of the original vector divided by 2. The `.` is a placeholder that represents each element of the vector or list you pass into `map`. Let's look at a more complex example:
+
+```{r}
+mtcars %>%
+  split(.$am) %>%
+  map(~ lm(mpg ~ cyl, data = .)) %>%
+  map(summary)
+```
+
+What happened when we split `mtcars`? What was in the list that `map` iterated over?
+
+**YOUR ANSWER HERE**
+
+Notice that when you use some existing functions inside `map`, you don't need to use the `~`. This is because they are already defined as functions (unlike formulas) and `map` will pass each item in the list (which you can pipe in as above) to the function as is. Here is another example:
+
+```{r}
+mean_list <- map(mtcars, mean)
+mean_list
+```
+
+What does this chunk return? What do the values and names in the list represent? What does this reveal about how map works when you pass in a dataframe?
+
+**YOUR ANSWER HERE**
+
+If you want a vector of values instead of a named list (perhaps because you want to pipe the values into another function), you can use `unlist`.
+
+```{r}
+mean_vec <- mtcars %>%
+  map(mean) %>%
+  unlist
+
+class(mean_list)
+
+class(mean_vec)
+```
+*NOTE: You can also use a variant of map that returns a vector instead of a list (e.g. `map_dbl`):*
+
+## Practice with purrr
+
+Let's combine your knowledge of functions and with `purrr` and practice. First, use `map` to calculate the variance of each column in `mtcars` and return it as a vector of numeric values.
+
+**YOUR ANSWER HERE**
+
+Next, generate a sample of 100 observations drawn from the standard normal distribution and save it (hint: set your seed so your results are reproducible).
+
+**YOUR ANSWER HERE**
+
+What is the mean and variance of this sample?
+
+**YOUR ANSWER HERE**
+
+Now, use `map` to generate 500 bootstrapped samples from this sample and find the variance of each sample. Finally, plot the distribution of these variances. Can you do it in a single pipe? (hint: remember to sample with replacement)
+
+**YOUR ANSWER HERE**
+
+Where does the distribution seem to be centered? How does this relate to the variance of the original sample you calculated above?
+
+**YOUR ANSWER HERE**
+
+**BONUS** If you managed to do the last task in a single pipe, turn it into a function that takes two arguments: the sample you want to bootstrap from and the number of bootstrapped samples you want to generate. What happens to the distribution as you change the value of `n`?
+
+**YOUR ANSWER HERE**
+
+This is just the scratching the surface of what `purrr` can do. You can use it to iterate over all sorts of things: lists of files, urls, dataframes, nested dataframes, etc. Combined with the power and flexibility of functions in `R`, `map` is an extremely powerful tool and one that you will probably find yourself using as you continue your journey as quantitative social scientists!

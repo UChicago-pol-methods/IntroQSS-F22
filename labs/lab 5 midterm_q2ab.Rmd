@@ -1,0 +1,167 @@
+---
+title: "Midterm solutions"
+author: "Oscar"
+date: '2022-10-28'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+*Midterm solutions. Questions 2a and 2b*
+
+```{r 2a}
+df <- tibble(Y0 = c(1,2,0,3,1,5,2,1,7,0),
+Y1 = c(0, -3, 1,2,1,-8,2,-1,4,0),
+D = c(1,0,1,1,1,1,0,1,1,0))
+df
+```
+
+
+```{r 2b}
+# using case_when
+df_1 <- df |>
+  mutate(Y = case_when(D == 1 ~ Y1,
+                       TRUE ~ Y0))
+df_1
+```
+
+
+```{r 2b alternative}
+# alternatively
+df_2 <- df |>
+  mutate(Y = Y1*D + Y0*(1 - D))
+
+df_2
+```
+
+
+# For loops
+
+
+*Warm up*
+
+Recall, for-loops are an iterator that help us repeat tasks while changing inputs. The most
+common structure for your code will look like the following code. Complete and run the code.
+
+```{r}
+# what are you iterating over? The vector from -10:10
+items_to_iterate_over <- c(-10:10)
+items_to_iterate_over
+
+# pre-allocate the results
+out <- rep(0, length(items_to_iterate_over))
+out
+
+# write the iteration statement --
+# we'll use indices so we can store the output easily
+# i is a temporary container / object
+for (i in seq_along(items_to_iterate_over)) {
+  
+# do something
+# we capture the median of three random numbers from normal distributions various means
+out[[i]] <- median(rnorm(n = 3, mean = items_to_iterate_over[[i]]))
+}
+
+out
+```
+
+I. Writing for-loops
+
+```{r }
+x <- c(5, 10, 15, 20, 25000)
+
+for (number in x){
+  print(number)
+}
+
+```
+
+```{r }
+x <- c(5, 10, 15, 20, 250000)
+
+for (i in seq_along(x) ){
+  print(x[[i]])
+}
+
+```
+
+
+```{r}
+set.seed(60615)
+
+random <- rnorm(5)
+random
+
+```
+
+
+```{r}
+set.seed(60615)
+
+sd(rnorm(5))
+sd(rnorm(10))
+sd(rnorm(15))
+sd(rnorm(20))
+sd(rnorm(25000))
+
+set.seed(60615)
+
+sd1 <- sd(rnorm(5))
+sd2 <- sd(rnorm(10))
+sd3 <- sd(rnorm(15))
+sd4 <- sd(rnorm(20))
+sd5 <- sd(rnorm(25000))
+
+sds <- c(sd1, sd2, sd3, sd4, sd5)
+sds
+```
+
+
+```{r }
+set.seed(60615)
+
+x <- c(5, 10, 15, 20, 25000)
+
+# replace the ... with the relevant code
+for (i in seq_along(x) ){
+  print(sd(rnorm(x[[i]])))
+}
+```
+
+
+```{r}
+set.seed(60615)
+
+for (i in seq_along(x) ){
+  n <- x[[i]]
+  print(sd(rnorm(n, mean = 4)))
+}
+```
+
+
+```{r 3b}
+set.seed(60615)
+for (i in seq_along(x) ){
+  n <- x[[i]]
+  print(sd(rnorm(n, sd = 4)))
+}
+```
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
