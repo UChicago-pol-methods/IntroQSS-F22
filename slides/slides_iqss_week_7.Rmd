@@ -26,11 +26,19 @@ class: inverse, middle, center
 
 ---
 
-# Conditional expectation: definition
+# Conditional expectation: definition (2.2.10)
+
+Discrete version: 
 
 $$E [Y | X = x] = \sum_y y f_{Y|X}(y | x)$$ 
 
 i.e. the expectation of $Y$ at some $x$. 
+
+--
+
+Continuous version: 
+
+$$E [Y | X = x] = \int_{-\infty}^\infty y f_{Y|X}(y | x) \, dy$$
 
 ---
 
@@ -38,7 +46,7 @@ i.e. the expectation of $Y$ at some $x$.
 
 Suppose $f_X(x)$ is uniform, and $f_{Y|X}(y|x)$ normal, with mean of $3x + 8x^2 - 3x^3$ and variance of $9$.
 
-Then what is $E [Y | X = x] = \sum_y y f_{Y|X}(y | x)$ at $x = 1$?
+Then what is $E [Y | X = 1]$?
 
 --
 
@@ -213,6 +221,10 @@ What is the average age in the population?
 --
 
 $$E[E[Y | X]] = .8 \times 25 + .2 \times 20 = 24$$
+--
+
+See homework for another example.
+
 
 ---
 
@@ -241,38 +253,71 @@ tibble(x = rnorm(n, mean = 3, sd = 1.5)) |>
 
 ---
 
-## How LIE is used (preview)
+##  How LIE is used (preview)
 
-Suppose we want to estimate
-
-$$\text{ATE} = E[Y_i(1) - Y_i(0)] = E[Y_i(1)] - E[Y_i(0)]$$.
+Suppose we want to estimate $\text{ATE} = E[Y_i(1) - Y_i(0)] = E[Y_i(1)] - E[Y_i(0)]$ and can't randomize.
 
 --
 
-How did we estimate $E[Y_i(1)]$ and $E[Y_i(0)]$ via randomization?
+By LIE (for discrete $X_i$),
 
---
-
-Suppose randomization impossible. By LIE,
 $$\begin{aligned} 
-E[Y_i(1)] &= E[E[Y_i(1) | X_i]] \\\
- &= \sum_x E[Y_i(1) | X_i = x] \text{Pr}[X_i = x]
+E[Y_i(1) - Y_i(0)] &= \sum_x E[Y_i(1) - Y_i(0) | X_i = x] \text{Pr}[X_i = x] \\\
+ &= \sum_x \left(E[Y_i(1) | X_i = x] - E[Y_i(0) | X_i = x]\right) \text{Pr}[X_i = x]
 \end{aligned}$$
-(And same for $Y_i(0)$.)
 
 --
 
-Now suppose $E[Y_i(1) | X_i = x] = E[Y_i | D_i = 1, X_i = x] \, \forall x$ (**strong ignorability**), and same for $Y_i(0)$.
+<!-- Still stuck because we don't observe $E[Y_i(1) | X_i = x]$ or $E[Y_i(0) | X_i = x]$. -->
+
+Still not observable quantities, but now suppose $E[Y_i(1) | X_i = x] = E[Y_i | D_i = 1, X_i = x] \, \forall x$ and same for $Y_i(0)$. (**Strong ignorability**), 
 
 --
 
-Then we can plug in above, and the ATE is **identified**.
+Then we have 
+
+$$ E[Y_i(1) - Y_i(0)] = \sum_x \left( E[Y_i | D_i = 1, X_i = x] -  E[Y_i | D_i = 0, X_i = x] \right) \text{Pr}[X_i = x]$$
+--
+
+Given strong ignorability (and LIE), the ATE is the weighted sum of differences-in-means within each level of $X_i$. 
 
 ???
 
 Intuitively, is there a covariate such that, conditional on that covariate, the observed outcomes for the treated units are the counterfactual values for the control units with those same values of the covariate?
 
 If so, by LIE (and SUTVA), you have identified the treatment effect.
+
+---
+
+## How LIE is used (preview 2)
+
+Let $Y_i$ denote whether $i$ feels ill today, and let $D_i$ denote whether $i$ went to the doctor two days ago. What is the ATE (conceptually)?
+
+--
+
+Let $X_i$ denote whether $i$ felt ill three days ago.
+
+--
+
+| Subset  | Frequency | $\overline{Y}_i$ |
+|:------:|:------------:|:-----:|
+| $X_i = 1, D_i = 1$  |  .1   | .3 |
+| $X_i = 1, D_i = 0$ |  .1    | .5| 
+| $X_i = 0, D_i = 1$ | .1    |.1|
+| $X_i = 0, D_i = 0$  |.7    |.1|
+
+--
+
+The overall difference in means is `r .3*.5 + .1*.5 - .5*(1/8) - .1*(7/8)`, so going to the doctor appears to hurt.
+
+--
+
+But the difference in means among people who felt ill is -.2 and among people who did not feel ill is 0.
+
+--
+
+If we assume strong ignorability, the weighted average of these differences-in-means is an unbiased estimate of the ATE: here this is `r  .2*-.2`, so seeing the doctor appears to help on average.
+
 
 ---
 
@@ -289,7 +334,7 @@ p
 
 # Law of total variance (2)
 
-Let's take the data points in `dat` as the population: 
+This will be approximately true of a sample (esp. when we know the CEF):
 
 ```{r}
 head(dat, 4)
@@ -397,9 +442,7 @@ dat |>
 
 # Fitting OLS models
 
-How can we compute the OLS coefficients?
-
-One option: grid method
+One way to compute OLS coefficients: grid method
 
 - lay out a grid of possible coefficient values
 - compute sum/mean of squared residuals for all combinations
@@ -413,17 +456,14 @@ ssr <- function(intercept, slope, dat){
     mutate(prediction = intercept + slope*x,
            resid = y - prediction) |> 
     summarize(sum(resid^2)) |> 
-    as.numeric()
-}
+    as.numeric()}
 
 betas <- expand_grid(intercept = seq(-1, 1, by = .025),
                     slope = seq(0, 4, by = .025))
                     
-ssrs <- betas |> 
-  mutate(this_ssr = pmap_dbl(betas, ssr, dat = dat)) 
+ssrs <- betas |> mutate(this_ssr = pmap_dbl(betas, ssr, dat = dat)) 
 
-the_min <- ssrs |> 
-  filter(this_ssr == min(this_ssr))
+the_min <- ssrs |> filter(this_ssr == min(this_ssr))
 the_min
 ```
 
@@ -458,7 +498,7 @@ $$ \mathbf{\hat{\beta}} = \left( \mathbb{X}^T \mathbb{X} \right) ^{-1} \mathbb{X
 
 Aronow & Miller go through this (pp. 147-149) but I won't. Basically an optimization problem: 
 
-- express predictors as **regressor matrix** $\mathb{X}$
+- express predictors as **regressor matrix** $\mathbb{X}$
 - use differentiation to get **first order conditions**
 - solve using linear algebra (get inverse)
 
@@ -509,8 +549,12 @@ OLS is estimator of BLP.
 That could be useful for 
 
 - description if the BLP is a useful summary of the relationship between $Y$ and $X$
-- prediction if the BLP describes the relationship between $Y$ and $X$ in some other data (e.g. future data)
+- prediction if the BLP approximates the relationship between $Y$ and $X$ in some other data (e.g. future data)
 - causal inference if the treatment effect is identified and the key observable features of the CEF (e.g. $\mathrm{E}\, [Y_i | D_i = 1, X_i = x]$) can be estimated from the OLS coefficients 
+
+--
+
+Notice minimal assumptions/requirements: nothing about unbiasedness, iid error terms, normality of error terms, etc (see Gauss-Markov Theorem).  
 
 --
 
@@ -519,7 +563,6 @@ Very common to use causal language about regression coefficients when it's not r
 --
 
 Better: "the coefficient on democracy is 2.12", "predicted GDP is higher by 2.12 (units?) in democracies than in non-democracies, conditional on these covariates"
-
 
 ---
 
