@@ -231,7 +231,7 @@ g +
 
 --
 
-These values are about -2 and 2. We will use them a lot. 
+These values are about -1.96 and 1.96. We will use them a lot. 
 
 ---
 
