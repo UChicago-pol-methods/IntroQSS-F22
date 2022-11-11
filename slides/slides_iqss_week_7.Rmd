@@ -340,13 +340,12 @@ This will be approximately true of a sample (esp. when we know the CEF):
 head(dat, 4)
 ```
 
-Then: 
-
 ```{r}
 dat |> 
   summarize(var(y), var(y - mu), var(mu))
 ```
 
+Sample variance of $Y$ equals (approx) sample variance of errors plus sample variance of CEF.
 
 ---
 
@@ -366,7 +365,7 @@ Recall the coefficients of the bivariate BLP:
 
 --
 
-Can substitute "sample analogues" of each of these:
+For plug-in estimation, can substitute "sample analogues" of each of these:
 
 - means 
 - (unbiased) sample covariances
@@ -378,14 +377,14 @@ Can substitute "sample analogues" of each of these:
 
 Backing up a bit, recall that BLP is the linear function of $X$  that minimizes MSE.
 
-In multivariate case, 
+In multivariate case, BLP definition (2.3.6) is:
 
-$$(\beta_0, \beta_1, \ldots \beta_K) = \underset{(b_0, b_1, \ldots, b_K) \in \mathbb{R}^{k+1}}{\arg\min} \, \mathrm{E}\,[\left(Y - (b_0 + b_1 X_{[1]} + b_2 X_{[2]} + \ldots b_K X_{K} )\right)^2]$$
+$$(\beta_0, \beta_1, \ldots \beta_K) = \underset{(b_0, b_1, \ldots, b_K) \in \mathbb{R}^{k+1}}{\arg\min} \, \mathrm{E}\,[\left(Y - (b_0 + b_1 X_{[1]} + b_2 X_{[2]} + \ldots b_K X_{[K]} )\right)^2]$$
 --
 
 To apply plug-in principle here, minimize **average squared residual** instead of mean squared error: 
 
-$$(\hat{\beta}_0, \hat{\beta}_1, \ldots \hat{\beta}_K) = \underset{(b_0, b_1, \ldots, b_K) \in \mathbb{R}^{k+1}}{\arg\min} \, \frac{1}{n}  \sum_{i=1}^n \,[\left(Y - (b_0 + b_1 X_{[1]} + b_2 X_{[2]} + \ldots b_K X_{K} )\right)^2]$$
+$$(\hat{\beta}_0, \hat{\beta}_1, \ldots \hat{\beta}_K) = \underset{(b_0, b_1, \ldots, b_K) \in \mathbb{R}^{k+1}}{\arg\min} \, \frac{1}{n}  \sum_{i=1}^n \,[\left(Y_i - (b_0 + b_1 X_{[1]i} + b_2 X_{[2]i} + \ldots b_K X_{[K]i} )\right)^2]$$
 
 (Equivalently, minimize **sum of squared residuals**.)
 
@@ -450,21 +449,19 @@ One way to compute OLS coefficients: grid method
 
 --
 
-```{r, cache = T}
-ssr <- function(intercept, slope, dat){
+```{r, cache = T, echo = F}
+msr <- function(intercept, slope, dat){
   dat |> 
     mutate(prediction = intercept + slope*x,
            resid = y - prediction) |> 
-    summarize(sum(resid^2)) |> 
-    as.numeric()}
+    summarize(mean(resid^2)) |> as.numeric()}
 
 betas <- expand_grid(intercept = seq(-1, 1, by = .025),
                     slope = seq(0, 4, by = .025))
                     
-ssrs <- betas |> mutate(this_ssr = pmap_dbl(betas, ssr, dat = dat)) 
+msrs <- betas |> mutate(msr = map2_dbl(intercept, slope, msr, dat = dat)) 
 
-the_min <- ssrs |> filter(this_ssr == min(this_ssr))
-the_min
+the_min <- msrs |> filter(msr == min(msr))
 ```
 
 ---
@@ -475,8 +472,8 @@ the_min
 nudge_x <-.05
 nudge_y <-.025
 
-ssrs |> 
-  ggplot(aes(x = intercept, y = slope, z = this_ssr)) + 
+msrs |> 
+  ggplot(aes(x = intercept, y = slope, z = msr)) + 
   geom_contour() + 
   geom_point(x = coef(the_lm)[1], y = coef(the_lm)[2]) + 
   geom_point(x = 0, y = 2, col = "red") + 
