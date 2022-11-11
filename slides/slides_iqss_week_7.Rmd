@@ -18,6 +18,9 @@ knitr::opts_chunk$set(fig.height=5, fig.width=8.5, fig.align="center", warning =
 ```
 
 
+<!-- Next time: more explanation of the overfitting part, or maybe drop it. But much good stuff in here. Ended up talking through the LIE example a different way: is there some part of the population for which you can estimate the CATE? and then combine those. A figure with the population represented by a rectangle, and subsets by X. subclassification. 
+
+Or for overfitting: teach LOO cross validation? --> 
 
 class: inverse, middle, center
 
@@ -807,7 +810,7 @@ results |>
   pivot_longer(cols = contains("sample"), names_prefix = "mse_") |> 
   group_by(k, n, name) |> 
   summarize(value = mean(value)) |> 
-  mutate(name = ifelse(name == "in_sample", "Mean squared residual\n(in sample)", "Mean squared error\n(in population)"),
+  mutate(name = ifelse(name == "in_sample", "Mean squared residual\n(in sample)", "Mean squared residual\n(in large sample from\nthe population)"),
          samp_size = factor(str_c("n = ", n)),
          samp_size = fct_reorder(samp_size, n)) |> 
   ggplot(aes(x = k, y = value, col = name)) + 
