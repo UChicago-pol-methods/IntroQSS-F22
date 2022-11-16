@@ -1,0 +1,203 @@
+---
+title: "Lab 7: Regression"
+date: "10/28/2021"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(tidyverse)
+library(estimatr)
+```
+
+## Regression with a single indicator independent variable
+
+First, let's practice the mechanics of running a regression in R. As you've seen, there are different ways to do this. For most applications, `lm()` is sufficient, but there may be situations in which you want to use the `estimatr` package. We will practice the syntax for both. 
+
+First, we need some data. Let's practice with `mtcars`.
+
+```{r}
+car_data <- mtcars
+View(car_data)
+```
+
+Let's say that we are interested in exploring the relationship between transmission and fuel economy. Let's regress `mpg` onto `am`.
+
+```{r}
+model_1 <- lm(car_data, formula = mpg ~ am)
+
+summary(model_1)
+```
+
+
+```{r}
+mr <- lm_robust(car_data, formula = mpg ~ am)
+summary(mr)
+```
+We have a slope and intercept, but what do they mean? That depends on what form the independent variable takes and what the specific values represent. Let's check the documentation. 
+
+```{r}
+?mtcars
+```
+
+What values does `am` take in the data? What do those values represent?
+
+`am` can take on two values: 0 and 1. They represent automatic and manual transmission respectively. When we have a dichotomous categorical variable mapped onto the values 0 and 1, we usually refer to it as an "indicator variable" (you will also encounter the term "dummy variable"). 
+
+Now that we understand what the variable represents, let's interpret our results. One way we can do this, which is especially helpful when we have multiple independent variables is to think about the functional form of our regression. In this case it would be:
+
+$$\text{mpg} = 17.147 + 7.245 D_{i} $$
+
+where $D_i = 0$ if the car has automatic transmission and $D_i = 1$ if it has a manual transmission. 
+
+So, the model predicts that automatic cars get an average of 17.147 mpg and manual cars get 7.245 more mpg than that. 
+
+As discussed in lecture 5.1, when we have a regression that is structured this way, the intercept is equal to the mean of the "untreated" category and the slope is the difference in means. Can you verify this?
+
+```{r}
+car_data %>%
+  filter(am==0) %>%
+  summarize(mean(mpg))
+```
+
+
+```{r}
+car_data %>%
+  summarize(mean(mpg[am==1]) - mean(mpg[am==0]))
+```
+
+### Extracting info from a regression
+
+Notice that there is a lot more information stored in the object `model_1` than just the coefficients. For example, the fitted values (aka predicted values) and residuals. The fitted values are the $y_i$ generated for each observation by the model and the residuals are the difference between the observed and fitted values (i.e. residual = observed - fitted). 
+
+If you take Linear Models in the winter quarter, you will talk in great detail about residuals and why we care about them. For now just know that you can retrieve them from your model like so:
+
+```{r}
+my_resid_1 <- model_1$residuals
+```
+
+Since we have the residuals and the fitted values, we should be able to recreate the original `mpg` column. See if you can recreate the mpg column and verify that they are the same.
+
+```{r}
+my_fit_1 <- model_1$fitted.values
+
+my_mpg <- my_fit_1 + my_resid_1
+
+View(mpg)
+View(my_mpg)
+
+FALSE %in% as.logical(near(car_data$mpg, my_mpg))
+```
+
+## Adding controls
+
+Let's think more critically about the regression we ran above. 
++ There's an apparent association between transmission type and miles per gallon. 
++ This data is pretty old (1981 I believe), and automatic transmissions were less common and more expensive than they are today. + Taking a quick glance at the data, it appears that some of the cars with the largest engines (measured by displacement) have automatic transmissions and some of cars with the smallest engines have manual transmissions. 
++ It is possible that engine size is a confounder, influencing both the choice of transmission (maybe car manufacturers wanted smoother shifting in their more powerful, expensive cars) and the fuel economy (bigger engines consume more fuel). 
++ mSo, we want to account for the association between engine size and fuel economy as well. 
+
+To make the interpretation easier, let's create a new indicator variable called `sport` which takes on the value 1 if the displacement is greater than 250 cubic inches.
+
+```{r}
+car_data <- car_data %>%
+  mutate(sport = if_else(disp > 250, 1, 0))
+```
+
+Now, let's run the regression again, but include `sport` and `lm`.
+
+```{r}
+model_2 <- lm_robust(data = car_data, 
+                     formula = mpg ~ am + sport)
+
+summary(model_2)
+```
+
+
+What happened to the intercept and coefficient on `am`? What does the coefficient on `sport` mean? What happened to the value of $R^2$?
+
+The intercept increased and the coefficient on `am` decreased. The coefficient on sport can be interpreted as: the model predicts that (all else held equal), a "sports" car will get 6.7 fewer mpg than a non-sports car. The value of $R^2$ increased, suggesting that this model fits the data better than the previous one. 
+
+## Interaction terms
+
++ The new coefficients suggest that the baseline fuel economy for automatic, non-sport cars is higher than for automatic cars in general, but manual cars are still more fuel efficient on average.
++ Suppose a car industry expert comes to us and points out that there is variation within the cars that have manual transmissions that our model doesn't capture. 
++ Manual sports cars tend to be big, beefy American muscle cars (which have terrible gas mileage), but manual non-sports cars tend to be inexpensive, lighter models (which get pretty good gas mileage). 
++ In other words, the independent variables in our model *interact* in a way that isn't captured by the coefficients from the previous model.
+So, let's add an *interaction term* to the model.
+
+The way to add an interaction term to your model is by including the product of two independent variables.
+
+```{r}
+model_3 <- lm_robust(data = car_data,
+                     mpg ~ am*sport)
+
+summary(model_3)
+```
+
+Interpret the results. The functional form of this model is:
+
+$$\text{mpg} = 20.633 + 5.394(\text{am}) - 5.095 (\text{sport}) - 5.532 (\text{am})(\text{sport}) $$
+
+where `am` and `sport` are either 0 or 1. What does our model predict the fuel economy of an automatic sports car is? Automatic non-sports car? Manual sports car? Manual non-sports car?
+
++ Automatic sports car ("am" off / "sports" on): 15.538
++ Automatic non-sports car ("am" off / "sports" off): 20.633
++ Manual sports car ("am" on / "sports" on): 15.400
++ Manual non-sports car ("am" on / "sports" off): 26.027
+
+The key is to notice that the coefficient on the interaction term is only realized when *both* indicator variables equal 1. 
+
+## Regression with continuous independent variables
+
+So far, we've been working with indicator variables, which have coefficients that are easy to interpret. You're most likely to encounter these variables in experimental contexts. Unfortunately most social science research is not so neat or easy to interpret. Continuous variables are everywhere we look in the real world, and frequently find their way into out models. 
+
+Let's look back one of the plots we generated in Lab 1 using the UK coal data. If the code below doesn't work for you, you can save the csv locally (the data is in the course GitHub repo) and read it in. 
+
+```{r}
+data_path <- "https://raw.github.com/UChicago-pol-methods/IntroQSS-F22/main/data/"
+
+coal_data <- read_csv(str_c(data_path, "uk_coal_tables.csv"), 
+               col_types = "cddddddd", 
+               na = "N/A") 
+```
+
+Remember this plot that we produced:
+
+```{r}
+plot_1 <- ggplot(data = coal_data, 
+                 mapping = aes(x = Tons_Produced, 
+                               y = Tons_Exported,
+                               color = Country)) +
+                  geom_point() + 
+                  geom_smooth(method = "lm") + 
+                  labs(x = "Tons Produced", 
+                  y = "Tons Exported", 
+                  title = "Production vs Exports")
+    
+plot_1
+```
+
+We colored by country because there seemed to be clusters of points that were behaving differently. Each line represents an OLS regression for a specific country. Use your data wrangling skills and the ggplot code above to find the slope and intercept of the regression line for the United Kingdom observations.  
+
+```{r}
+coal_uk <- coal_data %>%
+  filter(Country == "United Kingdom")
+
+model_4 <- lm_robust(data = coal_uk,
+                     Tons_Exported ~ Tons_Produced)
+
+summary(model_4)
+```
+
+Interpret the results (remember that the independent variable is continuous). Does the intercept make sense? What does this tell us about this model's ability to generate out of sample predictions? Notice the $R^{2}$ value. Does it tell us if this is a "good" model or not? 
+
+The slope can be interpreted as: the model predicts that for each additional ton of coal the UK produces, it exports an additional .534 tons of coal. The intercept is approximately -55 million. Obviously we could never observe this in the real world (because countries can't export negative quantities of coal). The $R^2$ value is extremely high, so the model is an excellent fit for the data we have. This demonstrates that just because a model has good fit, we should not assume that it will be able to produce reliable (or even plausible) out-of-sample predictions. 
+
+## Final project brainstorming
+
+Brainstorm a regression you might want to add to your final project. What are the independent and dependent variables? Are they continuous or categorical? How would you interpret your regression coefficient?  
