@@ -1,0 +1,125 @@
+---
+title: "Lab 8 Solutions"
+date: "11/18/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(estimatr)
+
+set.seed(2418)
+```
+
+## Quantile functions
+
+You've seen quantile functions in the lecture notes, but you will be expected to use them in the problem set. Thus far, you've primarily encountered the `qnorm` function (i.e. "quantile of the normal"). Recall how it works:
+
+```{r}
+qnorm_995 <- qnorm(.995)
+
+qnorm_005 <- qnorm(.005)
+```
+
+What do the values `qnorm995` and `qnorm005` represent? What else do you know about the distribution used to generate these values (i.e. what is the mean and standard deviation)? Check the documentation to find the null arguments if you are unsure. 
+
+**A**: 
++ The values represent the value below which 99.5% and .5% of the normal distribution lie respectively. 
++ In other words, the two values mark the upper and lower bounds of a 99% confidence interval. 
++ Looking at the documentation, the null arguments for qnorm are `mean = 0` and `sd = 1`, which means the distribution used to generate these quantiles is the *standard* normal (just like the other `norm` functions). 
++ It makes sense that `qnorm95 = -qnorm5` because the standard normal is symmetric about 0.
+
+So, this works if the normal distribution is a suitable approximation of the null distribution for our hypothesis test, but this won't always be the case. Luckily, we can use the `quantile` function with any numeric vector! See this example:
+
+```{r}
+unif_sample <- runif(n = 100, min = 0, max = 100)
+
+# The generic function quantile produces sample quantiles corresponding to the given probabilities. 
+quantile(unif_sample, probs = .9)
+quantile(unif_sample, probs = c(.05, .95))
+```
+
+What do these values represent? Are they symmetric about the mean like the values produced by `qnorm` above? 
+
+**A** 
++ The values represent the point below which 90% of the sample lies and the bounds of the middle 90% of the sample respectively. 
++ They are not symmetric because the quantiles were calculated on a random *sample* from the uniform distribution, not the uniform distribution itself (we can think of it as an empirical CDF). 
++ The sampling process introduces randomness. 
+
+Now, use `qunif` to find the .05 and .95 quantiles of the same uniform distribution used to generate the sample above.  
+
+```{r}
+# qunif gives the quantile function
+qunif(p = c(.05, .95), min = 0, max = 100)
+```
+
+How do the values compare to the quantiles of the sample? When you increase the sample size, what happens to the sample quantiles relative to the distribution quantiles?
+
+```{r}
+unif_sample_2 <- runif(n = 1000, min = 0, max = 100)
+
+unif_sample_3 <- runif(n = 5000, min = 0, max = 100)
+
+quantile(unif_sample_2, probs = c(.05, .95))
+
+quantile(unif_sample_3, probs = c(.05, .95))
+```
+**A** The upper and lower sample quantiles are close, but not exactly the same as the distribution quantiles, but as we increase the sample size, they appear to converge to the true values (5 and 95 respectively).
+
+## More on Bootstrapping
+
+Last week we practiced bootstrapping from a sample, which was a numeric vector. But, we can bootstrap from dataframes too! To do so, we'll use the `slice_sample()` function. Rather than randomly sample values from a vector, it randomly samples rows. This is helpful if there are *multiple variables that you want to keep from your data when you bootstrap*. Why might you want to do so?
+
+**A** As we will do below, this is helpful because you can use these bootstrapped samples and `map` to run the same linear model specification repeatedly to estimate certain parameters (like robust standard errors). 
+
+Run the following chunk. What is the structure of the output?
+
+```{r}
+mt_cars_boot_1 <- map(1:1000, ~slice_sample(mtcars))
+
+head(mt_cars_boot_1)
+```
+
+**A** This code produces a list of 1000 dataframes. Each dataframe contains only one randomly sampled row from `mtcars.` This is because the default value of `n` in `slice_sample` is 1. So, every iteration generates a single random row from the original dataframe. 
+
+Alter the code to take 1000 bootstrapped versions of `mtcars`, where each bootstrapped dataframe has the same number of rows as the original. Save the output as an object called `mt_cars_boot_2`. 
+
+```{r}
+# Creating 1000 simulated samples with 32 rows
+mt_cars_boot_2 <- map(1:1000, ~ slice_sample(.data = mtcars, replace = TRUE, n = nrow(mtcars)))
+
+# How it looks like:
+View(mt_cars_boot_2)
+
+# Checking two samples
+head(mt_cars_boot_2, 2)
+```
+
+What does the output look like now?
+
+**A** The output is still a list of 1000 dataframes, but this time each dataframe has 32 rows (the same number of rows as the original `mtcars` data). Also notice that some rows are repeated. If we do not specify `replace = TRUE` then each sample will contain exactly the same observations as the original data, but in a random order. For our purposes, that's not helpful because the summary statistics like mean and variance of each column would be exactly the same as in the original data. Note that rows that are chosen more than once take on the format `[carname]..[rownumber]`.
+
+## Iterating linear models
+
+One thing we can do with these bootstrapped dataframes is feed them into map and run a linear regression on each sample. Run the following chunk:
+
+```{r}
+boot_lm <- map(mt_cars_boot_2, ~lm_robust(mpg ~ cyl + disp, data = .) %>%
+                 coef()) 
+
+head(boot_lm)
+```
+
+What does the output look like? Alter the code to iterate a linear model of your own design over the bootstrapped dataframes. Output a vector of the coefficients on each variable as a *matrix* (hint: use `bind_rows`). 
+
+```{r}
+boot_lm_2 <- map(mt_cars_boot_2, ~lm_robust(mpg ~ hp*am, data = .) %>%
+                 coef()) %>%
+  bind_rows
+
+head(boot_lm_2, 10)
+```
