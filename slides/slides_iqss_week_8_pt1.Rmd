@@ -617,7 +617,8 @@ $$
 ```{r}
 A <- matrix(1:9, nrow = 3,)
 A
-diag(A)
+diag(A) # extracts diagonal
+diag(c(1,2,3)) # constructs diagonal
 ```
 
 
