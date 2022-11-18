@@ -1,0 +1,798 @@
+---
+title: "PLSC30500, Fall 2022"
+subtitle: "Week 8. Inference (2) pt 2"
+# author: "Andy Eggers & Molly Offer-Westort"
+output: 
+  xaringan::moon_reader:
+    self_contained: true
+    css: [default, uchicago_pol_meth.css]
+    nature:
+      highlightLines: true
+      countIncrementalSlides: false
+
+---
+class: inverse, middle, center
+
+```{r setup, include=FALSE}
+library(tidyverse)
+set.seed(60637)
+options(width = 60)
+```
+
+
+```{css, echo=FALSE}
+.small-output .remark-code{
+  font-size: small;
+}
+
+.white { color: white; }
+.red { color: red; }
+.blue { color: blue; }
+
+```
+
+# Continuing: Inference for random variables
+
+---
+Inference for random variables part 1:
+
+ - we're assuming that our data is produced from a random generative process, where we have a sample from some (potentially infinite) population distribution that is not fully observed. 
+
+(It's important to consider *what the source of randomness is* and *what population we're making inferences about*.)
+
+ - Standard errors of an estimate using formula or bootstrapping
+ 
+ - Normal approximation-based confidence intervals
+ 
+ - Bootstrap-based confidence intervals (two ways)
+
+---
+
+## Applied example
+
+
+
+We can put this together with respect to a paper by Devah Pager: 
+
+
+Pager, D. (2003). The mark of a criminal record. *American Journal of Sociology*, 108(5), 937-975.
+
+---
+
+
+The study was an audit study, where pairs of white and pairs of black hypothetical job applicants applied to real jobs. 
+
+--
+
+In each pair, one respondent listed a criminal record on job applications; the other did not. Otherwise, applicants were matched. 
+
+--
+
+The outcome is whether applicants got a callback. 
+
+---
+
+
+```{r, message=FALSE}
+mcr <- tibble(
+  black = rep(c(0, 1), times = c(300, 400)),
+  record = c(rep(c(0, 1), each = 150), 
+             rep(c(0, 1), each = 200)),
+  call_back = c(
+    # whites without criminal records
+    rep(c(0, 1), times = c(99, 51)), # 150
+    # whites with criminal records
+    rep(c(0, 1), times = c(125, 25)), # 150: could be 25 or 26
+    # blacks without criminal records
+    rep(c(0, 1), times = c(172, 28)), # 200
+    # blacks with criminal records
+    rep(c(0, 1), times = c(190, 10)) # 200 
+  )
+)
+
+```
+
+
+
+---
+class:small-output
+
+# 
+
+```{r, message = FALSE}
+mcr |> 
+  group_by(black, record) |> 
+  summarize(n = n(), 
+            call_back = mean(call_back))
+```
+
+```{r pdb_fig, echo=FALSE, out.width = "80%", fig.align="center"}
+knitr::include_graphics('assets/pager_2003.png')
+```
+
+
+
+
+---
+
+Let's say our $\hat{\theta}$ here is the overall mean of `call_back` among black applicants.
+
+```{r}
+(theta_hat <- mcr |> 
+   filter(black == 1) |> 
+   summarize(mean(call_back)) |> 
+   pull())
+```
+--
+
+Our $\hat{se}$ is our estimate of the standard error of the mean, 
+$$\hat{se} = \sqrt{\hat{\textrm{Var}}[X]/n}.$$ 
+
+--
+
+We get this by plugging in our unbiased sample variance estimate into the formula for the standard error of the mean. 
+
+```{r}
+(se_hat <- mcr |> 
+   filter(black == 1) |> 
+   summarize(sqrt(var(call_back)/length(call_back))) |> 
+   pull())
+
+```
+
+---
+
+We can then get our 95% confidence intervals by plugging into the formula, 
+
+
+$$
+CI\_n = \left(\hat \theta\_n - 1.96 \times \hat{\textrm{se}},\  \theta\_n + 1.96 \times \hat{\textrm{se}} \right)
+$$
+
+
+```{r}
+(CI <- c(theta_hat + c(-1,1)*qnorm(1-0.025)*se_hat))
+```
+
+
+
+---
+## Bootstrapping
+
+The normal approximation based confidence intervals work with our standard error estimates produced from bootstrapping, as well. 
+
+--
+
+We'll apply this to our mcr data. 
+
+```{r}
+
+boot_ests <- map_dbl(1:1000, # for 1000 times
+                 # resample w/replacement
+                 ~ sample(mcr |> filter(black == 1) 
+                          |> pull(call_back), 
+                          replace = TRUE) |>
+                   mean()) # and calculate the resampled mean
+
+(boot_se_hat <- sd(boot_ests))
+```
+
+---
+
+We then insert our bootstrapped estimates of the standard error of the mean into the same formula for normal approximation-based confidence intervals. 
+
+$$
+CI\_n = \left(\hat \theta\_n - z\_{1-\alpha/2} \times \hat{\textrm{se}},\  \theta\_n + z\_{1-\alpha/2}\times \hat{\textrm{se}} \right)
+$$
+
+
+```{r}
+(CI <- c(theta_hat + c(-1,1)*qnorm(1-0.025)*boot_se_hat))
+```
+
+---
+class: inverse, middle, center
+
+# Moving on to new material
+
+---
+# Hypothesis testing
+
+In our randomization inference section, we specified the null distribution in terms of the individual treatment effect. 
+
+--
+
+When we use the normal approximation to conduct inference, we generally posit our null with respect to the *mean* of the parameter, $\theta$. 
+--
+I.e., 
+
+$$
+H_0: \theta = \theta_0
+$$
+
+$$
+H_A: \theta \neq \theta_0
+$$
+--
+We can also consider a one-sided alternative, 
+
+$$
+H_A: \theta \leq \theta_0
+$$
+--
+Or
+
+$$
+H_A: \theta \ge \theta_0
+$$
+--
+
+Which alternative we choose is determined by the questions we're asking of the data. 
+
+---
+
+## p-values
+
+Suppose $\hat{\theta}$ is the general form for an estimate produced by our estimator, and $\hat{\theta}^*$ is the value we have actually observed. 
+
+---
+
+## p-values
+
+- A lower one-tailed $p$-value under the null hypothesis is 
+
+$$
+p = \textrm{P}\_0[\hat{\theta} \le \hat{\theta}^*]
+$$
+
+i.e., the probability *under the null distribution* that we would see an estimate of $\hat{\theta}$ that is less than or equal to what we saw from the data. 
+
+
+
+---
+
+## p-values
+
+
+
+- An upper one-tailed $p$-value under the null hypothesis is:
+
+$$
+p = \textrm{P}\_0[\hat{\theta} \ge \hat{\theta}^*]
+$$
+
+i.e., the probability *under the null distribution* that we would see an estimate of $\hat{\theta}$ that is greater than or equal to what we saw from the data. 
+
+---
+
+## p-values
+
+- A two-tailed $p$-value under the null hypothesis is 
+
+$$
+p = \textrm{P}\_0[|\hat{\theta}| \ge |\hat{\theta}^*|]
+$$
+
+i.e., the probability *under the null distribution* that we would see an estimate of $\hat{\theta}$ as or more extreme as what we saw from the data. 
+
+
+
+
+---
+
+## T-statistic
+
+How do we produce our $p$-values under the normal approximation based approach?
+
+--
+
+We'll use a statistic called the t-statistic to get our $p$-values. 
+
+--
+
+
+The *t-statistic* is:
+$$
+t = \frac{\hat{\theta}^* - \theta_0}{\hat{se}}
+$$
+
+--
+
+The t-statistic will tell us how unusual our evidence is relative to the null distribution, but it is standardized (*with respect to the null!*), so that we can interpret t-statistics the same way in different settings. 
+
+---
+
+## Normal-approximation based p-values
+
+
+We plug the t-statistic produced by our estimates into the CDF function of the standard normal distribution, $\Phi(\cdot)$. 
+
+--
+
+- For an asymptotically valid lower one-tailed $p$-value **under the null**, 
+
+$$
+p = \Phi\left( t \right)
+$$
+
+--
+
+- For an asymptotically valid upper one-tailed $p$-value **under the null**, 
+
+$$
+p = 1 - \Phi\left( t \right)
+$$
+
+
+--
+
+- For an asymptotically valid two-tailed $p$-value **under the null**
+
+$$
+p = 2 \times \left(1 -  \Phi\left(  \lvert t \rvert \right)\right)
+$$
+
+---
+
+## Applied example
+
+Let's try it out with the mcr data. 
+
+--
+
+Recall that our $\hat{\theta}^*$ is the mean of `call_back`.
+
+
+```{r}
+theta_hat
+```
+
+--
+
+And our $\hat{se}$ is our estimate of the standard error of the mean, 
+$$\hat{se} = \sqrt{\hat{\textrm{Var}}[X]/n};$$ 
+
+```{r}
+se_hat
+```
+
+
+---
+
+Suppose we frame our null in terms of the average call back rate among black respondents being 10%. 
+--
+This could be the known average callback rate across the overall population. 
+
+--
+
+
+$$
+H_0: \theta = 0.10 
+$$
+
+---
+This is the null distribution we're using for the sample mean under the normal approximation-based approach. 
+
+```{r, fig.width = 10, fig.height=5, fig.align = 'center', echo=FALSE}
+result_n <- rnorm(n = 10000, mean = 0.10, sd = se_hat)
+plotdata <- tibble(
+  x = result_n,
+  Fx = pnorm(result_n, mean = 0.10, sd = se_hat),
+  fx = dnorm(result_n, mean = 0.10, sd = se_hat)
+)
+
+g <- ggplot(plotdata, aes(x = x, y = fx)) +
+  geom_line() +
+  coord_cartesian(xlim = c(qnorm(0.000001, mean = 0.10, sd = se_hat), 
+                           qnorm(0.999999, mean = 0.10, sd = se_hat))) +
+  ggtitle('Null Distribution of the Sample Mean')
+
+g +
+  geom_vline(xintercept = 0.10, lty = 'dashed', color = 'skyblue') + 
+  geom_segment(aes(x = 0.10, xend = 0.10-se_hat, y = 15, yend = 15), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'skyblue') +
+  geom_segment(aes(x = 0.10, xend = 0.10 + se_hat, y = 15, yend = 15), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'skyblue') +
+  geom_point(aes(x = 0.10, y = 15), color = 'skyblue') + 
+  annotate(geom="text", x = 0.10 - se_hat/2, y = 14, label = as.character(expression(sigma)), parse = TRUE, color = 'steelblue') + 
+  annotate(geom="text", x = 0.10 + se_hat/2, y = 14, label = as.character(expression(sigma)), parse = TRUE, color = 'steelblue') + 
+  annotate(geom="text", x = 0.10 + .001, y = 20, label = as.character(expression(theta)), parse = TRUE, color = 'steelblue')
+
+```
+
+--
+
+- The mean is our proposed $\theta_0 = 0.10$, 
+
+--
+- the standard error is the same as what we estimated, `r round(se_hat, 3)`. 
+
+---
+
+
+Our t-statistic under the null is:
+
+$$
+\frac{\hat{\theta}^* - \theta_0}{\hat{se}}
+$$
+
+Recall that the $p$-value is calculated *under the assumption that the null is true*, so $\theta_0$ is the value of $\theta$ under the null. 
+
+```{r}
+(tstat <- (theta_hat - 0.10)/se_hat)
+```
+
+---
+
+
+
+
+We will consider a couple of different alternative hypotheses. 
+
+---
+
+First, we'll consider the one-tailed alternative hypothesis that $\theta$ is less than $\theta_0 = 0.10$.
+
+
+$$
+H_A: \theta \leq 0.10
+$$
+
+--
+To evaluate this, we calculate our one-sided lower p-value as:
+
+$$
+p = \Phi\left(  t  \right)
+$$
+
+--
+
+```{r}
+(lower_p_value <- pnorm(tstat))
+```
+
+--
+
+How do we interpret this?
+
+--
+
+It is the probability *under the null distribution* that we would see an estimate of $\hat{\theta}$ that is less than or equal to what we saw from the data.
+
+
+---
+
+
+
+```{r, fig.width = 10, fig.height=5, fig.align = 'center', echo=FALSE}
+g +
+  stat_function(fun = dnorm,
+                args = list(mean = 0.10, sd = se_hat),
+                geom = "area",
+                fill = "skyblue",
+                xlim = c(0, qnorm(lower_p_value, mean = 0.10, sd = se_hat))) +
+  geom_vline(xintercept = theta_hat, color = 'skyblue', lty= 'dashed') +
+  geom_segment(aes(x = 0.09, xend = 0.04 + se_hat, y = 15, yend = 15), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'darkgray') +
+  annotate('text', x = .06, y = 12.5, color = 'darkgray', 
+           label = 'area under the curve in this direction', size = 6)
+
+```
+
+
+
+---
+
+
+Then, we'll consider the two-sided alternative hypothesis that $\theta$ is not equal to $\theta_0 = 0.10$. 
+
+
+$$
+H_A: \theta \neq 0.10
+$$
+
+--
+Then we calculate our two-tailed  p-value as
+
+
+$$
+p = 2 \times \left(1 -  \Phi\left( \lvert t \rvert  \right)\right)
+$$
+
+--
+
+```{r}
+(two_tailed_p_value <- 2*(1 - pnorm(abs(tstat))))
+```
+
+--
+
+How do we interpret this?
+
+--
+
+It is the probability *under the null distribution* that we would see an estimate of $\hat{\theta}$ that is more extreme than what we saw from the data. 
+--
+
+This is a high probability; we would fail to reject the null at any kind of conventional $p$-value (0.001, 0.01, 0.05, 0.1, ...). 
+
+
+---
+
+
+
+```{r, fig.width = 10, fig.height=5, fig.align = 'center', echo=FALSE}
+g +
+  stat_function(fun = dnorm,
+                args = list(mean = 0.10, sd = se_hat),
+                geom = "area",
+                fill = "skyblue",
+                xlim = c(0, qnorm(lower_p_value, mean = 0.10, sd = se_hat))) +
+  stat_function(fun = dnorm,
+                args = list(mean = 0.10, sd = se_hat),
+                geom = "area",
+                fill = "skyblue",
+                xlim = c(qnorm(1-lower_p_value, mean = 0.10, sd = se_hat), 1)) +
+  geom_vline(xintercept = theta_hat, color = 'skyblue', lty= 'dashed') +
+  geom_vline(xintercept = 0.10+0.10-theta_hat, color = 'skyblue', lty= 'dashed') +
+  geom_segment(aes(x = 0.09, xend = 0.04 + se_hat, y = 15, yend = 15), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'darkgray') +
+  annotate('text', x = .06, y = 12.5, color = 'darkgray', 
+           label = 'area under the curve in this direction', size = 6) +
+  geom_segment(aes(x = 0.10+0.10-0.09, xend = 0.10+0.10-(0.04 + se_hat), y = 15, yend = 15), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'darkgray') +
+  annotate('text', x = 0.10+0.10-.06, y = 8.5, color = 'darkgray', 
+           label = 'and this direction', size = 6)
+
+```
+
+
+---
+## Duality of confidence intervals and hypothesis testing
+
+
+
+Let's consider the null hypothesis that the mean is $0$, applied to the mcr data. 
+
+$$
+H_0: \theta = 0 
+$$
+$$
+H_A: \theta \neq 0 
+$$
+
+
+---
+
+Our t-statistic under the null is:
+
+$$
+\frac{\hat{\theta}^* - \theta_0}{\hat{se}}
+$$
+
+```{r}
+(tstat <- (theta_hat - 0)/se_hat)
+```
+
+--
+
+Then we calculate our two-tailed  p-value as
+
+$$
+p = 2 \times \left(1 -  \Phi\left(  \frac{\lvert \hat{\theta}^* - \theta_0 \rvert}{\hat{se}}  \right)\right)
+$$
+
+```{r}
+(two_tailed_p_value <- 2*(1 - pnorm(abs(tstat))))
+```
+
+
+
+---
+This is the null distribution we're using for the sample mean under the normal approximation-based approach.
+
+```{r, fig.width = 10, fig.height=5, fig.align = 'center', echo=FALSE, message = FALSE}
+result_n <- rnorm(n = 10000, mean = 0, sd = se_hat)
+plotdata <- tibble(
+  x = result_n,
+  Fx = pnorm(result_n, mean = 0, sd = se_hat),
+  fx = dnorm(result_n, mean = 0, sd = se_hat)
+)
+
+g <- ggplot(plotdata, aes(x = x, y = fx)) +
+  geom_line() +
+  coord_cartesian(xlim = c(qnorm(0.000001, mean = 0, sd = se_hat), 
+                           qnorm(0.999999, mean = 0, sd = se_hat))) +
+  ggtitle('Null Distribution of the Sample Mean')
+```
+
+```{r, fig.width = 10, fig.height=5, fig.align = 'center', echo=FALSE, message = FALSE}
+g +
+  coord_cartesian(xlim = c(-.1, .1))
+```
+
+
+---
+This is the null distribution we're using for the sample mean under the normal approximation-based approach.
+
+```{r, fig.width = 10, fig.height=5, fig.align = 'center', echo=FALSE, message = FALSE}
+g +
+  coord_cartesian(xlim = c(-.1, .1)) +
+  geom_vline(xintercept = -theta_hat, col = 'skyblue', lty = 'dashed') +
+  geom_vline(xintercept = theta_hat, col = 'skyblue', lty = 'dashed')
+
+```
+
+---
+This is the null distribution we're using for the sample mean under the normal approximation-based approach.
+
+```{r, fig.width = 10, fig.height=5, fig.align = 'center', echo=FALSE, message = FALSE}
+g +
+  coord_cartesian(xlim = c(-.1, .1)) +
+  geom_vline(xintercept = -theta_hat, col = 'skyblue', lty = 'dashed') +
+  geom_vline(xintercept = theta_hat, col = 'skyblue', lty = 'dashed') +
+  geom_segment(aes(x = -0.06, xend = -0.12 + se_hat, y = 15, yend = 15), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'darkgray') +
+  annotate('text', x = -.06, y = 12.5, color = 'darkgray', 
+           label = 'area under the curve in this direction', size = 6) +
+  geom_segment(aes(x = 0.06, xend = 0.1, y = 15, yend = 15), 
+               arrow = arrow(length = unit(0.25, "cm")), color = 'darkgray') +
+  annotate('text', x = .06, y = 8.5, color = 'darkgray', 
+           label = 'and this direction', size = 6)
+
+```
+
+--
+
+Our $p$-value is very small; we would reject the null hypothesis at a $p$-value $< 0.001$. 
+
+---
+
+- Confidence intervals and hypothesis tests have a specific relationship. 
+
+---
+
+- Consider all of the hypotheses that take the form:
+
+$$
+H_0: \theta = \theta_0
+$$
+$$
+H_A: \theta \neq \theta_0
+$$
+
+--
+
+- If the calculated two-tailed $p$-value is less than $0.05$, reject the hypothesis. 
+
+--
+
+- If the calculated two-tailed $p$-value is greater than $0.05$, fail to reject the hypothesis. 
+
+--
+
+- The $\theta_0$ for which we would fail to reject the hypothesis lie within the 95% confidence interval. 
+
+
+
+---
+One way that this is very useful:
+
+- If $0$ is outside the 95% confidence interval, we would reject the hypothesis that $\theta = 0$ at $p = 0.05$. 
+
+--
+
+- If $0$ is outside the 99% confidence interval, we would reject the hypothesis that $\theta = 0$ at $p = 0.01$. 
+
+--
+
+- If $0$ is outside the 99.9% confidence interval, we would reject the hypothesis that $\theta = 0$ at $p = 0.001$. 
+
+---
+
+## Bootstrapping
+
+- We can estimate robust standard errors by bootstrapping. 
+
+--
+
+Let's try this with the mcr data, where the outcome $Y$ is `call_back`, regressed on `black` and `record`, interacted. 
+
+$$
+\hat{Y}_i = \hat{\beta}_0 + \hat{\beta}_1 \textrm{Black}_i + \hat{\beta}_2 \textrm{Record}_i + \hat{\beta}_3 \textrm{Black}_i  \times \textrm{Record}_i
+$$
+
+
+```{r}
+
+model2 <- estimatr::lm_robust(call_back ~ black*record, data = mcr)
+
+(theta_hats <- coef(model2))
+```
+
+---
+class: small-output
+
+# 
+
+
+```{r}
+boot_samples <- map(1:1000, # for 1000 times
+                    # resample w/replacement
+                    ~ slice_sample(mcr, 
+                                   replace = TRUE, 
+                                   n = nrow(mcr)))
+
+head(boot_samples, 2)
+```
+
+
+---
+class: small-output
+
+# 
+
+```{r}
+boot_lm_df <- map_dfr(boot_samples, 
+               ~ coef(estimatr::lm_robust(call_back ~ black*record, data = .)))
+
+head(boot_lm_df)
+```
+
+---
+
+```{r}
+boot_se_hats <- map_dbl(boot_lm_df, sd) 
+
+boot_se_hats
+```
+
+---
+
+We then calculate percentile based bootstrap estimates.  
+
+$$
+CI\_n = \left(\hat \theta\_n - z\_{1-\alpha/2} \times \hat{\textrm{se}},\  \theta\_n + z\_{1-\alpha/2}\times \hat{\textrm{se}} \right)
+$$
+
+---
+
+```{r}
+boot_ci <- bind_cols(term = names(theta_hats), 
+          est = theta_hats, 
+          boot_se = boot_se_hats,
+          conf_lower = map_dbl(boot_lm_df, quantile, 0.025),
+          conf_upper = map_dbl(boot_lm_df, quantile, 0.975))
+
+boot_ci
+```
+
+---
+class: small-output
+
+# 
+
+Consider the standard errors produced by `estimatr::lm_robust()` :
+```{r}
+estimatr::lm_robust(call_back ~ black*record, data = mcr) |> 
+                                                   broom::tidy() |> 
+  select(term, estimate, std.error)
+```
+--
+
+Compare these to the standard errors produced by `lm()`
+
+```{r}
+summary(lm(call_back ~ black*record, data = mcr)) |> 
+                                                   broom::tidy() |> 
+  select(term, estimate, std.error)
+```
+
+
+
+
+
+```{r knit, echo=FALSE, message=FALSE, warning=FALSE, eval=FALSE}
+knitr::purl(input = "slides_iqss_week_8_pt1.Rmd",
+            output = "../code_etc_from_lecture/slides_iqss_week_8_pt1.R")
+```
