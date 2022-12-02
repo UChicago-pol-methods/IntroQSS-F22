@@ -533,6 +533,63 @@ What if tests are not independent? \pause Bonferroni is too aggressive.
 \end{frame}
 
 
+\begin{frame}{p-hacking and multiple testing}
+
+Multiple testing corrections make it harder to ``find something''. \pause \\ \bigskip
+
+% desire to limit probability of single Type I error.
+
+These corrections are pretty straightforward when all the tests are presented. \pause \\ \bigskip 
+
+More problematic is ``data mining'', ``data dredging'', ``p-hacking'': researcher looks for something significant over many treatments, outcome variables, specifications, etc., and then presents the single most satisfactory result. \pause \\ \bigskip 
+
+If a researcher wants to find something significant AND tries many specifications, measurements, theories then without multiple testing corrections, then
+
+$$ \text{Pr}(\text{Reject } H_0 \text{ in chosen test} \mid H_0 \text{ is true}, \text{many tests}) >> \alpha$$
+
+\end{frame} 
+
+
+
+\begin{frame}{Fighting p-hacking in your own work}
+
+\begin{itemize}
+\item be aware of the problem
+\item stop trying to find something significant (\textcolor{red}{red flag}: talking about whether something ``worked'')
+\item instead, measure something important
+\item cultivate a reputation for principled, scientific research
+\item remember that
+\begin{itemize}
+\item $H_0: \beta = 0$ is not the only null you can test
+\item the confidence interval tells you what null hypotheses you would reject
+\item a narrow CI allows you to reject more nulls
+\end{itemize}
+\end{itemize}
+
+\end{frame}
+
+
+
+
+
+\begin{frame}{Bayes Rule and the prosecutor's fallacy}
+
+The logic of classical hypothesis testing: ``I observed something that would be surprising if the null hypothesis is true. Therefore I will reject the null hypothesis.'' \\ \pause \bigskip
+
+Related to \emph{modus tollens}: $p \implies q; \,\, \lnot q  \implies \lnot p$ \\ \pause \bigskip
+
+``Rejecting'' is a procedure. If done right, it has a certain Type I error rate. \\ \pause \bigskip
+
+But as a way of forming beliefs about hypotheses given incomplete information, classical hypothesis testing leaves out (deliberately!) a lot of important information. Bayes Rule is the complete account.  \\ \pause \bigskip
+
+Informally: if you find something that would be surprising under the null hypothesis, how likely is the null hypothesis to be true? Depends on what the alternatives are and how likely the observed result would be under those alternatives.
+\end{frame}
+
+
+
+
+
+
 %%%%%NOTE%%%%%
 \note{
 \scriptsize \singlespacing
