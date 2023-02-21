@@ -340,7 +340,7 @@ $$
 ---
 
 
-Returning to our example where we flip a coin twice, let $X$ be the number of heads we observe. Our coin is *not* fair, and the probability of getting a heads is 0.8. 
+Returning to our example where we flip a coin twice, let $X$ be the number of heads we observe. Our coin is *not* fair, and the probability of getting a heads is 0.75. 
 
 ```{r}
 X <- c(0, 1, 2)
